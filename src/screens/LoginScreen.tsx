@@ -1,56 +1,52 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { login as loginService } from '../api/auth';
-import { AuthContext } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import { login } from '../api/auth';
+import { saveSession } from '../storage/authStorage';
 
-export default function LoginScreen() {
-  const { login } = useContext(AuthContext);
-  const [username, setUsername] = useState('');
+export default function LoginScreen({ navigation }) {
+  const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
     setError('');
     try {
-      const result = await loginService(username, password);
-      login(result.token, result.usuario, result.sucursales);
-    } catch (e) {
-      setError('Usuario o contraseña incorrectos');
+      const response = await login(usuario, password);
+      if (response.access_token) {
+        await saveSession(response.access_token, response.usuario);
+        navigation.replace('Home');  // Redirige a pantalla principal
+      } else {
+        setError('Credenciales incorrectas');
+      }
+    } catch (err) {
+      setError('Error al iniciar sesión');
+      console.error(err);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
       <TextInput
         style={styles.input}
         placeholder="Usuario"
-        onChangeText={setUsername}
-        value={username}
-        autoCapitalize="none"
+        value={usuario}
+        onChangeText={setUsuario}
       />
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
+        value={password}
         secureTextEntry
         onChangeText={setPassword}
-        value={password}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Ingresar" onPress={handleLogin} />
+      <Button title="Iniciar sesión" onPress={handleLogin} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#000' },
-  title: { fontSize: 24, textAlign: 'center', marginBottom: 20, color: '#FFD700' },
-  input: {
-    borderWidth: 1,
-    marginBottom: 10,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-  },
-  error: { color: 'red', textAlign: 'center', marginBottom: 10 },
+  container: { flex: 1, justifyContent: 'center', padding: 20 },
+  input: { borderWidth: 1, padding: 10, marginBottom: 10, borderRadius: 5 },
+  error: { color: 'red', marginBottom: 10 },
 });
