@@ -125,7 +125,6 @@ export default function RegistroPago() {
                             : "Complete todos los campos para registrar el pago"}
                     </Text>
                 </View>
-
                 {/* Formulario */}
                 <View className="p-6 space-y-6">
                     <View className="flex-row justify-between space-x-3">
@@ -231,7 +230,6 @@ export default function RegistroPago() {
                         </View>
                     </View>
                 </View>
-
                 {/* Botones de acción */}
                 <View className="p-6 space-y-3">
                     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -247,7 +245,7 @@ export default function RegistroPago() {
                     </Animated.View>
                     dav{" "}
                 </View>
-
+                a
                 <Pressable
                     onPress={limpiarFormulario}
                     className="bg-gray-100 flex-row rounded-full h-12 w-80 self-center justify-center items-center mb-5"
