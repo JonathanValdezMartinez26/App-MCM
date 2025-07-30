@@ -1,15 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
-import React, { useState } from 'react';
-import { COLORS, SIZES } from '../constants';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView } from "react-native"
+import React, { useState } from "react"
+import { COLORS, SIZES } from "../../constants"
+import { Ionicons } from "@expo/vector-icons"
+import { useNavigation } from "expo-router"
+import { StatusBar } from "expo-status-bar"
 
 type Nav = {
     navigate: (value: string) => void
 }
-const STEP_COUNT = 4;
-const ACTIVE_STEP = 2; // first two steps active
+const STEP_COUNT = 4
+const ACTIVE_STEP = 2 // first two steps active
 
 const pinLength = 6
 const pinContainerSize = SIZES.width / 2
@@ -17,16 +17,12 @@ const pinMaxSize = pinContainerSize / pinLength
 const pinSpacing = 10
 const pinSize = pinMaxSize - pinSpacing * 2
 
-const dialPad = [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'del']
+const dialPad = [1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "del"]
 const dialPadSize = SIZES.width * 0.16
 const dialPadTextSize = dialPadSize * 0.4
 const _spacing = 20
 
-function DialPad({
-    onPress,
-}: {
-    onPress: (item: (typeof dialPad)[number]) => void
-}) {
+function DialPad({ onPress }: { onPress: (item: (typeof dialPad)[number]) => void }) {
     return (
         <FlatList
             numColumns={3}
@@ -39,20 +35,22 @@ function DialPad({
             renderItem={({ item }) => {
                 return (
                     <TouchableOpacity
-                        disabled={item === ''}
+                        disabled={item === ""}
                         onPress={() => {
                             onPress(item)
-                        }}>
+                        }}
+                    >
                         <View
                             style={{
                                 width: dialPadSize,
                                 height: dialPadSize,
                                 borderRadius: dialPadSize / 2,
-                                backgroundColor: item === '' ? 'transparent' : '#F5F5F5',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}>
-                            {item === 'del' ? (
+                                backgroundColor: item === "" ? "transparent" : "#F5F5F5",
+                                justifyContent: "center",
+                                alignItems: "center"
+                            }}
+                        >
+                            {item === "del" ? (
                                 <Ionicons
                                     name="backspace-outline"
                                     size={dialPadTextSize}
@@ -62,8 +60,8 @@ function DialPad({
                                 <Text
                                     style={{
                                         fontSize: dialPadTextSize,
-                                        fontFamily: 'regular',
-                                        color: 'black',
+                                        fontFamily: "regular",
+                                        color: "black"
                                     }}
                                 >
                                     {item}
@@ -78,8 +76,8 @@ function DialPad({
 }
 
 const CreateNewPin = () => {
-    const [code, setCode] = useState<number[]>([]);
-    const { navigate } = useNavigation<Nav>();
+    const [code, setCode] = useState<number[]>([])
+    const { navigate } = useNavigation<Nav>()
 
     return (
         <SafeAreaView style={styles.area}>
@@ -92,7 +90,7 @@ const CreateNewPin = () => {
                         key={idx}
                         style={[
                             styles.progressStep,
-                            idx < ACTIVE_STEP ? styles.stepActive : styles.stepInactive,
+                            idx < ACTIVE_STEP ? styles.stepActive : styles.stepInactive
                         ]}
                     />
                 ))}
@@ -101,19 +99,23 @@ const CreateNewPin = () => {
             <View style={styles.viewContainer}>
                 {/* Header */}
                 <Text style={styles.title}>Create a PIN</Text>
-                <Text style={styles.subtitle}>The PIN consists of 6 numbers which you will use to open applications and transactions and protect your data.</Text>
+                <Text style={styles.subtitle}>
+                    The PIN consists of 6 numbers which you will use to open applications and
+                    transactions and protect your data.
+                </Text>
             </View>
 
             <View
                 style={{
-                    flexDirection: 'row',
+                    flexDirection: "row",
                     gap: pinSpacing * 2,
                     marginBottom: _spacing * 2,
                     height: pinSize * 2,
                     alignItems: "flex-end"
-                }}>
+                }}
+            >
                 {[...Array(pinLength).keys()].map((key) => {
-                    const isSelected = !!code[key];
+                    const isSelected = !!code[key]
 
                     return (
                         <View
@@ -124,7 +126,7 @@ const CreateNewPin = () => {
                                 borderRadius: pinSize,
                                 borderColor: isSelected ? COLORS.primary : COLORS.neutralBlack,
                                 borderWidth: 1,
-                                backgroundColor: isSelected ? COLORS.primary : COLORS.white,
+                                backgroundColor: isSelected ? COLORS.primary : COLORS.white
                             }}
                         />
                     )
@@ -133,16 +135,16 @@ const CreateNewPin = () => {
 
             <DialPad
                 onPress={(item) => {
-                    if (item === 'del') {
-                        setCode((prevCode) => prevCode.slice(0, prevCode.length - 1));
-                    } else if (typeof item === 'number') {
+                    if (item === "del") {
+                        setCode((prevCode) => prevCode.slice(0, prevCode.length - 1))
+                    } else if (typeof item === "number") {
                         setCode((prevCode) => {
-                            const newCode = [...prevCode, item];
+                            const newCode = [...prevCode, item]
                             if (newCode.length === pinLength) {
-                                navigate("confirmpin");
+                                navigate("confirmpin")
                             }
-                            return newCode;
-                        });
+                            return newCode
+                        })
                     }
                 }}
             />
@@ -155,24 +157,24 @@ const CreateNewPin = () => {
     )
 }
 
-const stepWidth = (SIZES.width - 80) / STEP_COUNT;
+const stepWidth = (SIZES.width - 80) / STEP_COUNT
 
 const styles = StyleSheet.create({
     area: {
         flex: 1,
         backgroundColor: COLORS.white,
-        alignItems: 'center',
-        paddingVertical: 16 
+        alignItems: "center",
+        paddingVertical: 16
     },
     formTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 18,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginVertical: 18
     },
     progressContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
+        flexDirection: "row",
+        justifyContent: "center",
         marginBottom: 28,
         marginTop: 16
     },
@@ -180,19 +182,19 @@ const styles = StyleSheet.create({
         width: stepWidth,
         height: 4,
         borderRadius: 2,
-        marginHorizontal: 5,
+        marginHorizontal: 5
     },
     stepActive: {
-        backgroundColor: '#0761FD'
+        backgroundColor: "#0761FD"
     },
     stepInactive: {
-        backgroundColor: '#E5E5E5'
+        backgroundColor: "#E5E5E5"
     },
     title: {
         fontSize: 24,
-        fontFamily: 'bold',
+        fontFamily: "bold",
         color: COLORS.shadesBlack,
-        marginBottom: 12,
+        marginBottom: 12
     },
     subtitle: {
         fontSize: 14,

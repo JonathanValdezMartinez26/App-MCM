@@ -1,10 +1,10 @@
-import { Dimensions } from 'react-native';
+import { Dimensions } from "react-native"
 
-const { height, width } = Dimensions.get('window');
+const { height, width } = Dimensions.get("window")
 
 export const COLORS = {
-    primary: '#0761FD',
-    secondary: '#FFD300',
+    primary: "#c43136",
+    secondary: "#FFD300",
     tertiary: "#6C4DDA",
     success: "#0ABE75",
     black: "#181A20",
@@ -40,24 +40,24 @@ export const COLORS = {
     transparentWhite: "rgba(255,255,255, .2)",
     transparentWhite2: "rgba(255,255,255, .5)",
     blackTie: "#474747",
-    grayTie: '#BCBCBC',
+    grayTie: "#BCBCBC",
 
-     // color and background color for notifications
-     security: '#246BFD',
-     card: "#FB9400",
-     payment: "#6949FF",
-     update: "#FF5A5F",
-     account: "#1BAC4B",
-     transparentSecurity: "rgba(36, 107, 253, 0.08)",
-     transparentCard: "rgba(251, 148, 0, 0.08)",
-     transparentPayment: "rgba(105, 73, 255, 0.08)",
-     transparentUpdate: "rgba(255, 90, 95, 0.08)",
-     transparentAccount: "rgba(27, 172, 75, 0.08)",
-     transparentPrimary: "rgba(36, 107, 253, 0.08)",
+    // color and background color for notifications
+    security: "#246BFD",
+    card: "#FB9400",
+    payment: "#6949FF",
+    update: "#FF5A5F",
+    account: "#1BAC4B",
+    transparentSecurity: "rgba(36, 107, 253, 0.08)",
+    transparentCard: "rgba(251, 148, 0, 0.08)",
+    transparentPayment: "rgba(105, 73, 255, 0.08)",
+    transparentUpdate: "rgba(255, 90, 95, 0.08)",
+    transparentAccount: "rgba(27, 172, 75, 0.08)",
+    transparentPrimary: "rgba(36, 107, 253, 0.08)",
 
-     shadesBlack: "#111111",
-     neutralBlack: "#8C8C8C"
-};
+    shadesBlack: "#111111",
+    neutralBlack: "#8C8C8C"
+}
 
 export const SIZES = {
     // Global SIZES
@@ -81,23 +81,21 @@ export const SIZES = {
 
     // App Dimensions
     width,
-    height,
-};
+    height
+}
 
 export const FONTS = {
-    largeTitle: { fontFamily: 'black', fontSize: SIZES.largeTitle, lineHeight: 55, color: "black" },
-    h1: { fontFamily: 'bold', fontSize: SIZES.h1, lineHeight: 36, color: "black" },
-    h2: { fontFamily: 'bold', fontSize: SIZES.h2, lineHeight: 30, color: "black" },
-    h3: { fontFamily: 'bold', fontSize: SIZES.h3, lineHeight: 22, color: "black" },
-    h4: { fontFamily: 'bold', fontSize: SIZES.h4, lineHeight: 20 },
-    body1: { fontFamily: 'regular', fontSize: SIZES.body1, lineHeight: 36, color: "black" },
-    body2: { fontFamily: 'regular', fontSize: SIZES.body2, lineHeight: 30, color: "black" },
-    body3: { fontFamily: 'regular', fontSize: SIZES.body3, lineHeight: 22, color: "black" },
-    body4: { fontFamily: 'regular', fontSize: SIZES.body4, lineHeight: 20, color: "black" },
-};
+    largeTitle: { fontFamily: "black", fontSize: SIZES.largeTitle, lineHeight: 55, color: "black" },
+    h1: { fontFamily: "bold", fontSize: SIZES.h1, lineHeight: 36, color: "black" },
+    h2: { fontFamily: "bold", fontSize: SIZES.h2, lineHeight: 30, color: "black" },
+    h3: { fontFamily: "bold", fontSize: SIZES.h3, lineHeight: 22, color: "black" },
+    h4: { fontFamily: "bold", fontSize: SIZES.h4, lineHeight: 20 },
+    body1: { fontFamily: "regular", fontSize: SIZES.body1, lineHeight: 36, color: "black" },
+    body2: { fontFamily: "regular", fontSize: SIZES.body2, lineHeight: 30, color: "black" },
+    body3: { fontFamily: "regular", fontSize: SIZES.body3, lineHeight: 22, color: "black" },
+    body4: { fontFamily: "regular", fontSize: SIZES.body4, lineHeight: 20, color: "black" }
+}
 
+const appTheme = { COLORS, SIZES, FONTS }
 
-
-const appTheme = { COLORS, SIZES, FONTS };
-
-export default appTheme;
+export default appTheme

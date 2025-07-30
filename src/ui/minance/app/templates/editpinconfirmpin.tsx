@@ -1,14 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, Modal, Image, SafeAreaView } from 'react-native';
-import React, { useState } from 'react';
-import { COLORS, images, SIZES } from '../constants';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import CustomHeader from '@/components/CustomHeader';
-import { NavigationProp } from '@react-navigation/native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    FlatList,
+    Dimensions,
+    Modal,
+    Image,
+    SafeAreaView
+} from "react-native"
+import React, { useState } from "react"
+import { COLORS, images, SIZES } from "../../constants"
+import { Ionicons } from "@expo/vector-icons"
+import { useNavigation } from "expo-router"
+import { StatusBar } from "expo-status-bar"
+import CustomHeader from "@/components/CustomHeader"
+import { NavigationProp } from "@react-navigation/native"
 
-const { width } = Dimensions.get('window');
-const STEP_COUNT = 4;
+const { width } = Dimensions.get("window")
+const STEP_COUNT = 4
 
 const pinLength = 6
 const pinContainerSize = SIZES.width / 2
@@ -16,16 +26,12 @@ const pinMaxSize = pinContainerSize / pinLength
 const pinSpacing = 10
 const pinSize = pinMaxSize - pinSpacing * 2
 
-const dialPad = [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'del']
+const dialPad = [1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "del"]
 const dialPadSize = SIZES.width * 0.2
 const dialPadTextSize = dialPadSize * 0.4
 const _spacing = 20
 
-function DialPad({
-    onPress,
-}: {
-    onPress: (item: (typeof dialPad)[number]) => void
-}) {
+function DialPad({ onPress }: { onPress: (item: (typeof dialPad)[number]) => void }) {
     return (
         <FlatList
             numColumns={3}
@@ -38,7 +44,7 @@ function DialPad({
             renderItem={({ item }) => {
                 return (
                     <TouchableOpacity
-                        disabled={item === ''}
+                        disabled={item === ""}
                         onPress={() => {
                             onPress(item)
                         }}
@@ -48,12 +54,12 @@ function DialPad({
                                 width: dialPadSize,
                                 height: dialPadSize,
                                 borderRadius: dialPadSize / 2,
-                                backgroundColor: item === '' ? 'transparent' : '#F5F5F5',
-                                justifyContent: 'center',
-                                alignItems: 'center'
+                                backgroundColor: item === "" ? "transparent" : "#F5F5F5",
+                                justifyContent: "center",
+                                alignItems: "center"
                             }}
                         >
-                            {item === 'del' ? (
+                            {item === "del" ? (
                                 <Ionicons
                                     name="backspace-outline"
                                     size={dialPadTextSize}
@@ -63,8 +69,8 @@ function DialPad({
                                 <Text
                                     style={{
                                         fontSize: dialPadTextSize,
-                                        fontFamily: 'regular',
-                                        color: 'black',
+                                        fontFamily: "regular",
+                                        color: "black"
                                     }}
                                 >
                                     {item}
@@ -79,27 +85,27 @@ function DialPad({
 }
 
 const EditPinConfirmPIN = () => {
-    const [code, setCode] = useState<number[]>([]);
-    const navigation = useNavigation<NavigationProp<any>>();
-    const [modalVisible, setModalVisible] = useState(false);
+    const [code, setCode] = useState<number[]>([])
+    const navigation = useNavigation<NavigationProp<any>>()
+    const [modalVisible, setModalVisible] = useState(false)
 
     return (
         <SafeAreaView style={styles.area}>
             <View style={styles.container}>
                 <StatusBar style="dark" />
-                <CustomHeader
-                    title="Edit PIN"
-                    onBack={() => navigation.goBack()}
-                />
+                <CustomHeader title="Edit PIN" onBack={() => navigation.goBack()} />
                 <View style={styles.contentContainer}>
                     <View style={styles.viewContainer}>
                         {/* Header */}
                         <Text style={styles.title}>Confirmation a PIN</Text>
-                        <Text style={styles.subtitle}>The PIN consists of 6 numbers which you will use to open applications and transactions and protect your data.</Text>
+                        <Text style={styles.subtitle}>
+                            The PIN consists of 6 numbers which you will use to open applications
+                            and transactions and protect your data.
+                        </Text>
                     </View>
                     <View
                         style={{
-                            flexDirection: 'row',
+                            flexDirection: "row",
                             gap: pinSpacing * 2,
                             marginBottom: _spacing * 2,
                             height: pinSize * 2,
@@ -107,7 +113,7 @@ const EditPinConfirmPIN = () => {
                         }}
                     >
                         {[...Array(pinLength).keys()].map((key) => {
-                            const isSelected = !!code[key];
+                            const isSelected = !!code[key]
 
                             return (
                                 <View
@@ -116,9 +122,11 @@ const EditPinConfirmPIN = () => {
                                         width: pinSize,
                                         height: pinSize,
                                         borderRadius: pinSize,
-                                        borderColor: isSelected ? COLORS.primary : COLORS.neutralBlack,
+                                        borderColor: isSelected
+                                            ? COLORS.primary
+                                            : COLORS.neutralBlack,
                                         borderWidth: 1,
-                                        backgroundColor: isSelected ? COLORS.primary : COLORS.white,
+                                        backgroundColor: isSelected ? COLORS.primary : COLORS.white
                                     }}
                                 />
                             )
@@ -126,16 +134,16 @@ const EditPinConfirmPIN = () => {
                     </View>
                     <DialPad
                         onPress={(item) => {
-                            if (item === 'del') {
-                                setCode((prevCode) => prevCode.slice(0, prevCode.length - 1));
-                            } else if (typeof item === 'number') {
+                            if (item === "del") {
+                                setCode((prevCode) => prevCode.slice(0, prevCode.length - 1))
+                            } else if (typeof item === "number") {
                                 setCode((prevCode) => {
-                                    const newCode = [...prevCode, item];
+                                    const newCode = [...prevCode, item]
                                     if (newCode.length === pinLength) {
                                         setModalVisible(true)
                                     }
-                                    return newCode;
-                                });
+                                    return newCode
+                                })
                             }
                         }}
                     />
@@ -147,16 +155,24 @@ const EditPinConfirmPIN = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.successIconContainer}>
-                            <Image source={images.success} resizeMode='contain' style={styles.successImage} />
+                            <Image
+                                source={images.success}
+                                resizeMode="contain"
+                                style={styles.successImage}
+                            />
                         </View>
-                        <Text style={styles.modalTitle}>Your PIN has been successfully changed</Text>
+                        <Text style={styles.modalTitle}>
+                            Your PIN has been successfully changed
+                        </Text>
                         <Text style={styles.modalSubtitle}>The PIN has been change</Text>
-                        <TouchableOpacity style={styles.modalButton}
+                        <TouchableOpacity
+                            style={styles.modalButton}
                             onPress={() => {
-                                setModalVisible(false);
-                                navigation.navigate('(tabs)')
+                                setModalVisible(false)
+                                navigation.navigate("(tabs)")
                             }}
-                            activeOpacity={0.7}>
+                            activeOpacity={0.7}
+                        >
                             <Text style={styles.modalButtonText}>OK</Text>
                         </TouchableOpacity>
                     </View>
@@ -166,12 +182,12 @@ const EditPinConfirmPIN = () => {
     )
 }
 
-const stepWidth = (width - 80) / STEP_COUNT;
+const stepWidth = (width - 80) / STEP_COUNT
 
 const styles = StyleSheet.create({
     area: {
         flex: 1,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.white
     },
     container: {
         flex: 1,
@@ -180,32 +196,32 @@ const styles = StyleSheet.create({
     },
     formTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 18,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginVertical: 18
     },
     progressContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 40,
+        flexDirection: "row",
+        justifyContent: "center",
+        marginBottom: 40
     },
     progressStep: {
         width: stepWidth,
         height: 4,
         borderRadius: 2,
-        marginHorizontal: 5,
+        marginHorizontal: 5
     },
     stepActive: {
-        backgroundColor: '#0761FD'
+        backgroundColor: "#0761FD"
     },
     stepInactive: {
-        backgroundColor: '#E5E5E5'
+        backgroundColor: "#E5E5E5"
     },
     title: {
         fontSize: 24,
-        fontFamily: 'bold',
+        fontFamily: "bold",
         color: COLORS.shadesBlack,
-        marginBottom: 12,
+        marginBottom: 12
     },
     subtitle: {
         fontSize: 14,
@@ -228,44 +244,44 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     contentContainer: {
-        alignItems: 'center'
+        alignItems: "center"
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "center",
+        alignItems: "center"
     },
     modalContent: {
         width: SIZES.width - 60,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderRadius: 20,
         paddingHorizontal: 20,
         paddingVertical: 42,
-        alignItems: 'center',
+        alignItems: "center"
     },
     successIconContainer: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#28a745',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
+        backgroundColor: "#28a745",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 20
     },
     modalTitle: {
         fontSize: 24,
-        fontFamily: 'bold',
+        fontFamily: "bold",
         color: COLORS.shadesBlack,
-        textAlign: 'center',
+        textAlign: "center",
         marginBottom: 12,
         marginTop: 16
     },
     modalSubtitle: {
         fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginBottom: 20,
+        color: "#666",
+        textAlign: "center",
+        marginBottom: 20
     },
     modalButton: {
         backgroundColor: COLORS.primary,
@@ -276,9 +292,9 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     modalButtonText: {
-        color: '#fff',
+        color: "#fff",
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: "500"
     },
     successImage: {
         height: 100,

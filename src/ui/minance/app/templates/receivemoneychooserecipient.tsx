@@ -1,37 +1,49 @@
-import { View, Text, StyleSheet, TextInput, FlatList, Image, Pressable, TouchableOpacity, SafeAreaView } from 'react-native';
-import React, { useState } from 'react';
-import CustomHeader from '@/components/CustomHeader';
-import { useNavigation } from 'expo-router';
-import { NavigationProp } from '@react-navigation/native';
-import { COLORS, icons } from '@/constants';
-import { Ionicons } from '@expo/vector-icons';
-import { recipients } from '@/data';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    FlatList,
+    Image,
+    Pressable,
+    TouchableOpacity,
+    SafeAreaView
+} from "react-native"
+import React, { useState } from "react"
+import CustomHeader from "@/components/CustomHeader"
+import { useNavigation } from "expo-router"
+import { NavigationProp } from "@react-navigation/native"
+import { COLORS, icons } from "@/constants"
+import { Ionicons } from "@expo/vector-icons"
 
-const AVATAR_SIZE = 48;
+const AVATAR_SIZE = 48
 
 const ReceiveMoneyChooseReceipient = () => {
-    const navigation = useNavigation<NavigationProp<any>>();
-    const [search, setSearch] = useState('');
+    const navigation = useNavigation<NavigationProp<any>>()
+    const [search, setSearch] = useState("")
 
-    const filtered = recipients.filter(r =>
-        r.name.toLowerCase().includes(search.toLowerCase()) ||
-        r.account.includes(search)
-    );
+    const filtered = recipients.filter(
+        (r) => r.name.toLowerCase().includes(search.toLowerCase()) || r.account.includes(search)
+    )
 
     return (
         <SafeAreaView style={styles.area}>
             <View style={styles.container}>
-                <CustomHeader
-                    title="Receive"
-                    onBack={() => navigation.goBack()}
-                />
+                <CustomHeader title="Receive" onBack={() => navigation.goBack()} />
                 <View style={styles.content}>
                     <Text style={styles.headerTitle}>Choose recipient</Text>
-                    <Text style={styles.headerSubtitle}>Search or select your recipient to send money</Text>
+                    <Text style={styles.headerSubtitle}>
+                        Search or select your recipient to send money
+                    </Text>
 
                     {/* Search Bar */}
                     <View style={styles.searchContainer}>
-                        <Ionicons name="search-outline" size={20} color={COLORS.shadesBlack} style={styles.searchIcon} />
+                        <Ionicons
+                            name="search-outline"
+                            size={20}
+                            color={COLORS.shadesBlack}
+                            style={styles.searchIcon}
+                        />
                         <TextInput
                             style={styles.searchInput}
                             placeholder="Search"
@@ -45,10 +57,15 @@ const ReceiveMoneyChooseReceipient = () => {
                     <Text style={styles.sectionHeader}>Latest transaction</Text>
                     <FlatList
                         data={filtered}
-                        keyExtractor={item => item.id}
+                        keyExtractor={(item) => item.id}
                         showsVerticalScrollIndicator={false}
                         renderItem={({ item }) => (
-                            <Pressable style={styles.row} onPress={() => {/* select recipient */ }}>
+                            <Pressable
+                                style={styles.row}
+                                onPress={() => {
+                                    /* select recipient */
+                                }}
+                            >
                                 <Image source={item.avatar} style={styles.avatar} />
                                 <View style={styles.info}>
                                     <Text style={styles.name}>{item.name}</Text>
@@ -63,19 +80,16 @@ const ReceiveMoneyChooseReceipient = () => {
                 <View style={styles.bottomContainer}>
                     <TouchableOpacity
                         onPress={() => navigation.navigate("receivepurpose")}
-                        style={styles.scanBtn}>
-                        <Image
-                            source={icons.qr2}
-                            resizeMode='contain'
-                            style={styles.scanIcon}
-                        />
+                        style={styles.scanBtn}
+                    >
+                        <Image source={icons.qr2} resizeMode="contain" style={styles.scanIcon} />
                     </TouchableOpacity>
                     <Text style={styles.scanTitle}>Barcode</Text>
                 </View>
             </View>
         </SafeAreaView>
     )
-};
+}
 
 const styles = StyleSheet.create({
     area: {
@@ -89,23 +103,23 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingTop: 24,
+        paddingTop: 24
     },
     headerTitle: {
         fontSize: 24,
-        fontFamily: 'bold',
-        color: COLORS.shadesBlack,
+        fontFamily: "bold",
+        color: COLORS.shadesBlack
     },
     headerSubtitle: {
         fontSize: 14,
-        color: '#6B7280',
+        color: "#6B7280",
         fontFamily: "regular",
         marginTop: 8,
-        lineHeight: 20,
+        lineHeight: 20
     },
     searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         backgroundColor: COLORS.white,
         borderRadius: 24,
         borderColor: "#E3E3E3",
@@ -126,13 +140,13 @@ const styles = StyleSheet.create({
     },
     sectionHeader: {
         fontSize: 16,
-        fontFamily: 'bold',
+        fontFamily: "bold",
         color: COLORS.greyscale900,
         marginBottom: 12
     },
     row: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         paddingVertical: 12
     },
     avatar: {
@@ -146,7 +160,7 @@ const styles = StyleSheet.create({
     },
     name: {
         fontSize: 14,
-        fontFamily: 'bold',
+        fontFamily: "bold",
         color: COLORS.greyscale900,
         marginBottom: 4
     },
