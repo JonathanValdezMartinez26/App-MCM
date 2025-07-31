@@ -12,11 +12,20 @@ export const useSession = () => {
 export const SessionProvider = ({ children }) => {
     const [token, setToken] = useState(null)
     const [usuario, setUsuario] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         const checkToken = async () => {
-            const storedToken = await storage.getToken()
-            if (storedToken) setToken(storedToken)
+            try {
+                const storedToken = await storage.getToken()
+                if (storedToken) {
+                    setToken(storedToken)
+                }
+            } catch (error) {
+                console.error("Error checking stored token:", error)
+            } finally {
+                setIsLoading(false)
+            }
         }
         checkToken()
     }, [])
@@ -50,6 +59,7 @@ export const SessionProvider = ({ children }) => {
     const value = {
         token,
         usuario,
+        isLoading,
         login,
         logout
     }

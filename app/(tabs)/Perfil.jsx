@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, Alert, Pressable } from "react-native"
+import { View, Text, StyleSheet, Image, Alert, Pressable, Platform } from "react-native"
 import { router } from "expo-router"
 import { Feather } from "@expo/vector-icons"
 import { COLORS, images } from "../../constants"
@@ -8,20 +8,30 @@ export default function Perfil() {
     const { usuario, logout } = useSession()
 
     const cierraSesion = () => {
-        Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
-            {
-                text: "Cancelar",
-                style: "cancel"
-            },
-            {
-                text: "Cerrar Sesión",
-                style: "destructive",
-                onPress: () => {
-                    logout()
-                    router.push("/Login")
-                }
+        if (Platform.OS === "web") {
+            // Para web usamos window.confirm
+            const confirmed = window.confirm("¿Estás seguro que deseas cerrar sesión?")
+            if (confirmed) {
+                logout()
+                router.push("/")
             }
-        ])
+        } else {
+            // Para móvil usamos Alert nativo
+            Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Cerrar Sesión",
+                    style: "destructive",
+                    onPress: () => {
+                        logout()
+                        router.push("/")
+                    }
+                }
+            ])
+        }
     }
 
     return (
