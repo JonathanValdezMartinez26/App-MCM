@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { Animated, Dimensions } from "react-native"
-import { COLORS } from "../constants"
+import { COLORS, images } from "../constants"
 
 const { width, height } = Dimensions.get("window")
 
@@ -57,7 +57,7 @@ export default function SplashScreen({ onFinish }) {
             }}
         >
             <Animated.Image
-                source={require("../assets/images/splash.png")}
+                source={images.splash}
                 style={{
                     width: 200,
                     height: 200,

@@ -26,7 +26,16 @@ export async function removeUser() {
 }
 
 export async function clearAll() {
-    await AsyncStorage.multiRemove(["token", "user"])
+    await AsyncStorage.multiRemove(["token", "user", "intro_OK"])
+}
+
+export async function setIntroOK() {
+    await AsyncStorage.setItem("intro_OK", "true")
+}
+
+export async function getIntroStatus() {
+    const completed = await AsyncStorage.getItem("intro_OK")
+    return completed === "true"
 }
 
 export default {
@@ -36,5 +45,7 @@ export default {
     saveUser,
     getUser,
     removeUser,
-    clearAll
+    clearAll,
+    setIntroOK,
+    getIntroStatus
 }

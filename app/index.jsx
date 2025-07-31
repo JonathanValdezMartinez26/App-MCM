@@ -7,15 +7,20 @@ import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import { useSession } from "../context/SessionContext"
 import { COLORS } from "../constants"
 import Login from "../components/Login"
+import IntroSlides from "../components/IntroSlides"
 
 export default function index() {
     const insets = useContext(SafeAreaInsetsContext)
-    const { token, isLoading } = useSession()
+    const { token, isLoading, introOK, introMostrada } = useSession()
 
     useEffect(() => {
-        if (!isLoading && token) router.replace("/(tabs)/Cartera")
+        // Si ya terminó de cargar y hay token, redirigir a Cartera
+        if (!isLoading && token) {
+            router.replace("/(tabs)/Cartera")
+        }
     }, [isLoading, token])
 
+    // Mostrar loading mientras verifica el token
     if (isLoading) {
         return (
             <SafeAreaProvider>
@@ -34,9 +39,29 @@ export default function index() {
         )
     }
 
-    // Si no hay token, mostrar login
+    // Si no ha completado el onboarding, mostrar slides
+    if (!introOK) {
+        return (
+            <SafeAreaProvider>
+                <StatusBar style="light" />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: insets.top,
+                        paddingBottom: insets.bottom,
+                        backgroundColor: COLORS.primary
+                    }}
+                >
+                    <IntroSlides onFinish={introMostrada} />
+                </View>
+            </SafeAreaProvider>
+        )
+    }
+
+    // Si no hay token pero ya completó onboarding, mostrar login
     return (
         <SafeAreaProvider>
+            <StatusBar style="light" />
             <View
                 className="flex-1"
                 style={{

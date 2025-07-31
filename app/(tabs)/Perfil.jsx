@@ -1,35 +1,61 @@
-import { View, Text, StyleSheet, Image, Alert, Pressable, Platform } from "react-native"
+import { View, Text, StyleSheet, Image, Pressable } from "react-native"
 import { router } from "expo-router"
 import { Feather } from "@expo/vector-icons"
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"
+import CustomAlert from "../../components/CustomAlert"
+import { useCustomAlert } from "../../hooks/useCustomAlert"
 
 export default function Perfil() {
     const { usuario, logout } = useSession()
+    const { alertRef, showWarning, showSuccess, showError } = useCustomAlert()
 
     const cierraSesion = async () => {
-        if (Platform.OS === "web") {
-            const confirmed = window.confirm("¿Estás seguro que deseas cerrar sesión?")
-            if (confirmed) {
-                await logout()
-                // El layout de tabs se encargará de la redirección
-            }
-        } else {
-            Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
+        showWarning(
+            "Cerrar Sesión",
+            "¿Estás seguro que deseas cerrar sesión? Perderás el acceso a tu cuenta hasta que vuelvas a iniciar sesión.",
+            [
                 {
                     text: "Cancelar",
+                    onPress: () => {},
                     style: "cancel"
                 },
                 {
                     text: "Cerrar Sesión",
-                    style: "destructive",
                     onPress: async () => {
-                        await logout()
-                        // El layout de tabs se encargará de la redirección
-                    }
+                        try {
+                            const logoutSuccess = await logout()
+                            if (logoutSuccess) {
+                                showSuccess(
+                                    "Sesión cerrada",
+                                    "Has cerrado sesión exitosamente. ¡Hasta pronto!",
+                                    [
+                                        {
+                                            text: "Aceptar",
+                                            onPress: () => {
+                                                // El layout de tabs se encargará de la redirección
+                                            },
+                                            style: "default"
+                                        }
+                                    ]
+                                )
+                            } else {
+                                showError(
+                                    "Error al cerrar sesión",
+                                    "Ocurrió un problema al cerrar tu sesión. Por favor, inténtalo de nuevo."
+                                )
+                            }
+                        } catch (error) {
+                            showError(
+                                "Error inesperado",
+                                "Ocurrió un error inesperado al cerrar la sesión. La aplicación se reiniciará."
+                            )
+                        }
+                    },
+                    style: "destructive"
                 }
-            ])
-        }
+            ]
+        )
     }
 
     return (
@@ -56,6 +82,9 @@ export default function Perfil() {
                     <Text className="text-red-600 text-base font-medium ml-3">Cerrar Sesión</Text>
                 </Pressable>
             </View>
+
+            {/* Modal de alertas personalizadas */}
+            <CustomAlert ref={alertRef} />
         </View>
     )
 }

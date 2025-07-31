@@ -13,18 +13,20 @@ export const SessionProvider = ({ children }) => {
     const [token, setToken] = useState(null)
     const [usuario, setUsuario] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [introOK, setIntroOK] = useState(false)
 
     useEffect(() => {
         const checkToken = async () => {
             try {
-                const storedToken = await storage.getToken()
-                const storedUser = await storage.getUser()
+                const introDone = await storage.getIntroStatus()
+                setIntroOK(introDone)
 
+                const storedToken = await storage.getToken()
                 if (storedToken) {
                     setToken(storedToken)
-                    if (storedUser) {
-                        setUsuario(storedUser)
-                    }
+
+                    const storedUser = await storage.getUser()
+                    if (storedUser) setUsuario(storedUser)
                 }
             } catch (error) {
                 console.error("Error checking stored token:", error)
@@ -63,12 +65,23 @@ export const SessionProvider = ({ children }) => {
         }
     }
 
+    const introMostrada = async () => {
+        try {
+            await storage.setIntroOK()
+            setIntroOK(true)
+        } catch (error) {
+            console.error("Error completing intro:", error)
+        }
+    }
+
     const value = {
         token,
         usuario,
         isLoading,
+        introOK,
         login,
-        logout
+        logout,
+        introMostrada
     }
 
     return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

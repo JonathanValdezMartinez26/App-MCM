@@ -1,24 +1,17 @@
 import { useState } from "react"
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    ScrollView,
-    Pressable,
-    Image,
-    Alert,
-    Platform
-} from "react-native"
+import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Image } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import { router } from "expo-router"
 import { useSession } from "../context/SessionContext"
-import { COLORS } from "../constants"
+import { COLORS, images } from "../constants"
 import { sesion } from "../services"
+import CustomAlert from "./CustomAlert"
+import { useCustomAlert } from "../hooks/useCustomAlert"
 import "../styles/global.css"
 
 export default function Login() {
     const { login } = useSession()
+    const { alertRef, showError, showSuccess } = useCustomAlert()
     const [usuario, setUsuario] = useState("")
     const [password, setPassword] = useState("")
     const [secureText, setSecureText] = useState(true)
@@ -28,11 +21,7 @@ export default function Login() {
 
     const validaLogin = async () => {
         if (!usuario.trim() || !password.trim()) {
-            if (Platform.OS === "web") {
-                window.alert("Por favor completa todos los campos")
-            } else {
-                Alert.alert("Error", "Por favor completa todos los campos")
-            }
+            showError("Campos requeridos", "Por favor completa todos los campos para continuar.")
             return
         }
 
@@ -40,11 +29,10 @@ export default function Login() {
         try {
             const response = await sesion.login(usuario, password)
             if (!response.success) {
-                if (Platform.OS === "web") {
-                    window.alert(response.error)
-                } else {
-                    Alert.alert("Error", response.error)
-                }
+                showError(
+                    "Error de autenticación",
+                    response.error || "Credenciales incorrectas. Verifica tu usuario y contraseña."
+                )
                 return
             }
 
@@ -52,20 +40,36 @@ export default function Login() {
             const loginSuccess = await login(userData.access_token, userData.usuario)
 
             if (loginSuccess) {
-                router.push("/(tabs)/Cartera")
+                showSuccess("¡Bienvenido!", "Inicio de sesión exitoso. Redirigiendo...", [
+                    {
+                        text: "Continuar",
+                        onPress: () => router.push("/(tabs)/Cartera"),
+                        style: "default"
+                    }
+                ])
+
+                setTimeout(() => {
+                    router.push("/(tabs)/Cartera")
+                }, 1500)
             } else {
-                if (Platform.OS === "web") {
-                    window.alert("Error al guardar sesión")
-                } else {
-                    Alert.alert("Error", "Error al guardar sesión")
-                }
+                showError(
+                    "Error del sistema",
+                    "Error al guardar la sesión. Por favor, inténtalo de nuevo."
+                )
             }
         } catch (error) {
-            if (Platform.OS === "web") {
-                window.alert(`Error inesperado: ${error.message}`)
-            } else {
-                Alert.alert("Error", `Error inesperado: ${error.message}`)
-            }
+            showError("Error inesperado", `Ocurrió un problema: ${error.message}`, [
+                {
+                    text: "Reintentar",
+                    onPress: () => validaLogin(),
+                    style: "default"
+                },
+                {
+                    text: "Cancelar",
+                    onPress: () => {},
+                    style: "cancel"
+                }
+            ])
         } finally {
             setValidando(false)
         }
@@ -77,11 +81,7 @@ export default function Login() {
             keyboardShouldPersistTaps="handled"
             className="flex-1"
         >
-            <Image
-                source={require("../assets/images/logo.png")}
-                className="w-52 h-52 self-center mb-8"
-                resizeMode="contain"
-            />
+            <Image source={images.logo} className="h-36 self-center mb-8" resizeMode="contain" />
 
             <View
                 className="flex-row items-center border rounded-3xl px-4 mb-4 h-12 w-4/5 self-center"
@@ -144,9 +144,15 @@ export default function Login() {
                 )}
             </Pressable>
 
-            <Text className="text-center text-xs mt-12" style={styles.footer}>
-                Tienes detalles, contacta a Soporte Operativo.
+            <Text className="text-center text-xs mt-12 font-bold" style={styles.footer}>
+                ¿Tienes problemas?
             </Text>
+            <Text className="text-center text-xs" style={styles.footer}>
+                Contacta a Soporte Operativo.
+            </Text>
+
+            {/* Modal de alertas personalizadas */}
+            <CustomAlert ref={alertRef} />
         </ScrollView>
     )
 }
