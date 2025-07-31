@@ -1,13 +1,12 @@
-import "react-native-reanimated"
-import { FONTS } from "@/constants/fonts"
 import { useFonts } from "expo-font"
 import { Stack } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { useEffect, useState } from "react"
 import { LogBox } from "react-native"
-import { SessionProvider, useSession } from "@/context/SessionContext"
+import { FONTS } from "../constants/fonts"
+import { SessionProvider } from "../context/SessionContext"
 import { SafeAreaProvider } from "react-native-safe-area-context"
-import SplashScreenComponent from "@/components/SplashScreen"
+import SplashScreenComponent from "../components/SplashScreen"
 
 SplashScreen.preventAutoHideAsync()
 LogBox.ignoreAllLogs()

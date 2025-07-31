@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router"
 import { View, Text, Platform } from "react-native"
-import { Feather } from "@expo/vector-icons"
+import { Feather, AntDesign } from "@expo/vector-icons"
 import { COLORS, FONTS, SIZES } from "../../constants"
 
 export default function TabLayout() {
@@ -21,7 +21,7 @@ export default function TabLayout() {
             }}
         >
             <Tabs.Screen
-                name="Clientes"
+                name="Cartera"
                 options={{
                     title: "",
                     tabBarIcon: ({ focused }) => {
@@ -33,8 +33,8 @@ export default function TabLayout() {
                                     width: SIZES.width / 5
                                 }}
                             >
-                                <Feather
-                                    name="users"
+                                <AntDesign
+                                    name="wallet"
                                     size={24}
                                     color={focused ? COLORS.primary : COLORS.gray3}
                                 />
@@ -44,7 +44,7 @@ export default function TabLayout() {
                                         color: focused ? COLORS.primary : COLORS.gray3
                                     }}
                                 >
-                                    Clientes
+                                    Cartera
                                 </Text>
                             </View>
                         )
@@ -75,7 +75,7 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="Usuario"
+                name="Perfil"
                 options={{
                     title: "",
                     tabBarIcon: ({ focused }) => {
@@ -98,7 +98,7 @@ export default function TabLayout() {
                                         color: focused ? COLORS.primary : COLORS.gray3
                                     }}
                                 >
-                                    Usuario
+                                    Perfil
                                 </Text>
                             </View>
                         )

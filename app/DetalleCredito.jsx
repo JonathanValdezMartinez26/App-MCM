@@ -2,8 +2,8 @@ import { useContext, useEffect, useState } from "react"
 import { View, Text, Pressable, ScrollView } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
-import { creditos } from "@/services"
-import { COLORS } from "@/constants"
+import { creditos } from "../services"
+import { COLORS } from "../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 
@@ -19,7 +19,7 @@ export default function DetalleCredito() {
     const insets = useContext(SafeAreaInsetsContext)
 
     const volverAClientes = () => {
-        router.push("/(tabs)/Clientes")
+        router.push("/(tabs)/Cartera")
     }
 
     useEffect(() => {
@@ -65,7 +65,7 @@ export default function DetalleCredito() {
         }
     }
 
-    const stats = resumenDetalle()
+    const resumen = resumenDetalle()
 
     if (loading) {
         return (
@@ -103,12 +103,12 @@ export default function DetalleCredito() {
                             Crédito {noCredito}
                         </Text>
                         <Text className="text-base text-gray-600">
-                            Ciclo {ciclo} • {stats?.totalMovimientos || 0} movimientos
+                            Ciclo {ciclo} • {resumen?.totalMovimientos || 0} movimientos
                         </Text>
                     </View>
 
                     {/* Icono para ir a registro de pago */}
-                    {stats.progreso < 1 && (
+                    {resumen.progreso < 1 && (
                         <Pressable
                             onPress={() => router.push("/(tabs)/Pago")}
                             className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
@@ -121,7 +121,7 @@ export default function DetalleCredito() {
                 {/* Contenido con scroll */}
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                     {/* Progreso del Crédito */}
-                    {stats && (
+                    {resumen && (
                         <View className="p-6">
                             <Text className="text-lg font-semibold text-gray-800 mb-4">
                                 Progreso del Crédito
@@ -137,7 +137,7 @@ export default function DetalleCredito() {
                                     />
                                     <Text className="text-xs text-gray-600 mt-1">Otorgado</Text>
                                     <Text className="text-lg font-bold ">
-                                        {numeral(stats.saldoTotal).format("$0,0.00")}
+                                        {numeral(resumen.saldoTotal).format("$0,0.00")}
                                     </Text>
                                 </View>
 
@@ -145,7 +145,7 @@ export default function DetalleCredito() {
                                     <MaterialIcons name="schedule" size={24} color="#ea580c" />
                                     <Text className="text-xs text-gray-600 mt-1">Pago Semanal</Text>
                                     <Text className="text-lg font-bold ">
-                                        {numeral(stats.pagosSemana).format("$0,0.00")}
+                                        {numeral(resumen.pagosSemana).format("$0,0.00")}
                                     </Text>
                                 </View>
 
@@ -153,7 +153,7 @@ export default function DetalleCredito() {
                                     <MaterialIcons name="payments" size={24} color="#16a34a" />
                                     <Text className="text-xs text-gray-600 mt-1">Total Pagado</Text>
                                     <Text className="text-lg font-bold ">
-                                        {numeral(stats.totalPagado).format("$0,0.00")}
+                                        {numeral(resumen.totalPagado).format("$0,0.00")}
                                     </Text>
                                 </View>
                             </View>
@@ -162,7 +162,7 @@ export default function DetalleCredito() {
                                 <View className="flex-row justify-between items-center mb-3">
                                     <Text className="text-sm text-gray-600">Progreso de pago</Text>
                                     <Text className="text-lg font-bold text-blue-600">
-                                        {numeral(stats.progreso).format("0.0%")}
+                                        {numeral(resumen.progreso).format("0.0%")}
                                     </Text>
                                 </View>
 
@@ -171,7 +171,7 @@ export default function DetalleCredito() {
                                     <View
                                         className="h-full rounded-full"
                                         style={{
-                                            width: `${Math.min(stats.progreso * 100, 100)}%`,
+                                            width: `${Math.min(resumen.progreso * 100, 100)}%`,
                                             backgroundColor: COLORS.primary
                                         }}
                                     />

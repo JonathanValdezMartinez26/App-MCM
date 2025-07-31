@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from "react"
-import { View, Text, TextInput, Pressable, ScrollView, Alert, Modal, Animated } from "react-native"
+import { useContext, useState } from "react"
+import { View, Text, TextInput, Pressable, ScrollView, Modal, Animated } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
-import { COLORS } from "@/constants"
+import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 
@@ -85,7 +85,7 @@ export default function RegistroPago() {
         setModalVisible(false)
         if (modalType === "success") {
             limpiarFormulario()
-            router.push("/(tabs)/Clientes")
+            router.push("/(tabs)/Cartera")
         }
     }
 
@@ -108,7 +108,7 @@ export default function RegistroPago() {
         >
             {/* Header */}
             <View className="flex-row items-center p-4">
-                <Pressable onPress={() => router.push("/(tabs)/Clientes")} className="mr-4">
+                <Pressable onPress={() => router.push("/(tabs)/Cartera")} className="mr-4">
                     <Feather name="arrow-left" size={24} color="white" />
                 </Pressable>
                 <Text className="flex-1 text-white text-lg font-semibold">Registro de Pago</Text>
@@ -243,18 +243,17 @@ export default function RegistroPago() {
                             </Text>
                         </Pressable>
                     </Animated.View>
-                    dav{" "}
+
+                    <Pressable
+                        onPress={limpiarFormulario}
+                        className="bg-gray-100 flex-row rounded-full h-12 w-80 self-center justify-center items-center mb-5"
+                    >
+                        <MaterialIcons name="refresh" size={24} color="#6B7280" />
+                        <Text className="text-gray-600 font-semibold text-base ml-2">
+                            Limpiar Formulario
+                        </Text>
+                    </Pressable>
                 </View>
-                a
-                <Pressable
-                    onPress={limpiarFormulario}
-                    className="bg-gray-100 flex-row rounded-full h-12 w-80 self-center justify-center items-center mb-5"
-                >
-                    <MaterialIcons name="refresh" size={24} color="#6B7280" />
-                    <Text className="text-gray-600 font-semibold text-base ml-2">
-                        Limpiar Formulario
-                    </Text>
-                </Pressable>
             </ScrollView>
 
             {/* Modal de confirmación/error */}

@@ -1,0 +1,20 @@
+export const FONTS = {
+    black: require("../assets/fonts/Inter-Black.otf"),
+    blackItalic: require("../assets/fonts/Inter-BlackItalic.otf"),
+    bold: require("../assets/fonts/Inter-Bold.otf"),
+    boldItalic: require("../assets/fonts/Inter-BoldItalic.otf"),
+    extraBold: require("../assets/fonts/Inter-ExtraBold.otf"),
+    extraBoldItalic: require("../assets/fonts/Inter-ExtraBoldItalic.otf"),
+    extraLight: require("../assets/fonts/Inter-ExtraLight.otf"),
+    extraLightItalic: require("../assets/fonts/Inter-ExtraLightItalic.otf"),
+    italic: require("../assets/fonts/Inter-Italic.otf"),
+    light: require("../assets/fonts/Inter-Light.otf"),
+    lightItalic: require("../assets/fonts/Inter-LightItalic.otf"),
+    medium: require("../assets/fonts/Inter-Medium.otf"),
+    mediumItalic: require("../assets/fonts/Inter-MediumItalic.otf"),
+    regular: require("../assets/fonts/Inter-Regular.otf"),
+    semiBold: require("../assets/fonts/Inter-SemiBold.otf"),
+    semiBoldItalic: require("../assets/fonts/Inter-SemiBoldItalic.otf"),
+    thin: require("../assets/fonts/Inter-Thin.otf"),
+    thinItalic: require("../assets/fonts/Inter-ThinItalic.otf")
+}

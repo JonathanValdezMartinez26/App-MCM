@@ -12,9 +12,9 @@ import {
 import { StatusBar } from "expo-status-bar"
 import { Feather } from "@expo/vector-icons"
 import { router } from "expo-router"
-import { useSession } from "@/context/SessionContext"
-import { COLORS } from "@/constants"
-import { sesion } from "@/services"
+import { useSession } from "../context/SessionContext"
+import { COLORS } from "../constants"
+import { sesion } from "../services"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import "../styles/global.css"
 
@@ -40,7 +40,7 @@ export default function Login() {
             const userData = response.data
             const loginSuccess = await login(userData.access_token, userData.usuario)
 
-            if (loginSuccess) router.push("/(tabs)/Clientes")
+            if (loginSuccess) router.push("/(tabs)/Cartera")
             else Alert.alert("Error", "Error al guardar sesión")
         } catch (error) {
             Alert.alert("Error", `Error inesperado: ${error.message}`)
@@ -60,7 +60,7 @@ export default function Login() {
             <StatusBar style="dark" />
             <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
                 <Image
-                    source={require("@/assets/images/logo.png")}
+                    source={require("../assets/images/logo.png")}
                     className="w-52 h-52 self-center"
                     resizeMode="contain"
                 />
@@ -110,7 +110,7 @@ export default function Login() {
 
                 <Pressable
                     onPress={validaLogin}
-                    className="bg-black rounded-full h-12 w-1/2 self-center justify-center items-center mb-5"
+                    className="bg-black rounded-full h-12 w-[80%] self-center justify-center items-center mb-5"
                     style={{
                         backgroundColor: COLORS.primary,
                         opacity: validando ? 0.5 : 1
@@ -123,6 +123,8 @@ export default function Login() {
                         <Text className="text-white font-medium">Ingresar</Text>
                     )}
                 </Pressable>
+
+                <Text style={styles.footer}>Tienes detalles, contacta a Soporte Operativo.</Text>
             </ScrollView>
         </View>
     )
@@ -152,6 +154,12 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 14,
         color: COLORS.shadesBlack,
+        fontFamily: "regular"
+    },
+    footer: {
+        textAlign: "center",
+        fontSize: 12,
+        marginTop: 50,
         fontFamily: "regular"
     }
 })

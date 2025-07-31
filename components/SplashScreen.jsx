@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react"
 import { Animated, Dimensions } from "react-native"
-import { COLORS } from "@/constants"
+import { COLORS } from "../constants"
 
 const { width, height } = Dimensions.get("window")
 
 export default function SplashScreen({ onFinish }) {
-    const logoScale = useRef(new Animated.Value(0.5)).current
+    const logoScale = useRef(new Animated.Value(0)).current
     const logoOpacity = useRef(new Animated.Value(0)).current
     const backgroundOpacity = useRef(new Animated.Value(1)).current
 
@@ -18,9 +18,8 @@ export default function SplashScreen({ onFinish }) {
                     useNativeDriver: true
                 }),
                 Animated.spring(logoScale, {
-                    toValue: 1,
-                    tension: 100,
-                    friction: 8,
+                    toValue: 1.5,
+                    duration: 800,
                     useNativeDriver: true
                 })
             ]),
@@ -58,12 +57,19 @@ export default function SplashScreen({ onFinish }) {
             }}
         >
             <Animated.Image
-                source={require("@/assets/images/splash.png")}
+                source={require("../assets/images/splash.png")}
                 style={{
                     width: 200,
                     height: 200,
                     transform: [{ scale: logoScale }],
-                    opacity: logoOpacity
+                    opacity: logoOpacity,
+                    dropShadow: {
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5
+                    }
                 }}
                 resizeMode="contain"
             />
