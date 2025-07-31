@@ -9,6 +9,7 @@ yarn.lock
 .expo/
 dist/
 web-build/
+android/
 
 # Native
 *.orig.*

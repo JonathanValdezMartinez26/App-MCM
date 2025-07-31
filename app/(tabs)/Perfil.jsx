@@ -9,14 +9,12 @@ export default function Perfil() {
 
     const cierraSesion = () => {
         if (Platform.OS === "web") {
-            // Para web usamos window.confirm
             const confirmed = window.confirm("¿Estás seguro que deseas cerrar sesión?")
             if (confirmed) {
                 logout()
                 router.push("/")
             }
         } else {
-            // Para móvil usamos Alert nativo
             Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
                 {
                     text: "Cancelar",
