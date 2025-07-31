@@ -7,12 +7,12 @@ import { useSession } from "../../context/SessionContext"
 export default function Perfil() {
     const { usuario, logout } = useSession()
 
-    const cierraSesion = () => {
+    const cierraSesion = async () => {
         if (Platform.OS === "web") {
             const confirmed = window.confirm("¿Estás seguro que deseas cerrar sesión?")
             if (confirmed) {
-                logout()
-                router.push("/")
+                await logout()
+                // El layout de tabs se encargará de la redirección
             }
         } else {
             Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
@@ -23,9 +23,9 @@ export default function Perfil() {
                 {
                     text: "Cerrar Sesión",
                     style: "destructive",
-                    onPress: () => {
-                        logout()
-                        router.push("/")
+                    onPress: async () => {
+                        await logout()
+                        // El layout de tabs se encargará de la redirección
                     }
                 }
             ])

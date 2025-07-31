@@ -7,7 +7,8 @@ import {
     ScrollView,
     Pressable,
     Image,
-    Alert
+    Alert,
+    Platform
 } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import { router } from "expo-router"
@@ -26,43 +27,72 @@ export default function Login() {
     const [validando, setValidando] = useState(false)
 
     const validaLogin = async () => {
-        if (!usuario.trim() || !password.trim())
-            return Alert.alert("Error", "Por favor completa todos los campos")
+        if (!usuario.trim() || !password.trim()) {
+            if (Platform.OS === "web") {
+                window.alert("Por favor completa todos los campos")
+            } else {
+                Alert.alert("Error", "Por favor completa todos los campos")
+            }
+            return
+        }
 
         setValidando(true)
         try {
             const response = await sesion.login(usuario, password)
-            if (!response.success) return Alert.alert("Error", response.error)
+            if (!response.success) {
+                if (Platform.OS === "web") {
+                    window.alert(response.error)
+                } else {
+                    Alert.alert("Error", response.error)
+                }
+                return
+            }
 
             const userData = response.data
             const loginSuccess = await login(userData.access_token, userData.usuario)
 
-            if (loginSuccess) router.push("/(tabs)/Cartera")
-            else Alert.alert("Error", "Error al guardar sesión")
+            if (loginSuccess) {
+                router.push("/(tabs)/Cartera")
+            } else {
+                if (Platform.OS === "web") {
+                    window.alert("Error al guardar sesión")
+                } else {
+                    Alert.alert("Error", "Error al guardar sesión")
+                }
+            }
         } catch (error) {
-            Alert.alert("Error", `Error inesperado: ${error.message}`)
+            if (Platform.OS === "web") {
+                window.alert(`Error inesperado: ${error.message}`)
+            } else {
+                Alert.alert("Error", `Error inesperado: ${error.message}`)
+            }
         } finally {
             setValidando(false)
         }
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            className="flex-1"
+        >
             <Image
                 source={require("../assets/images/logo.png")}
-                className="w-52 h-52 self-center"
+                className="w-52 h-52 self-center mb-8"
                 resizeMode="contain"
             />
 
             <View
-                style={[
-                    styles.inputContainer,
-                    { borderColor: usuarioFocused ? COLORS.info : "#ccc" }
-                ]}
+                className="flex-row items-center border rounded-3xl px-4 mb-4 h-12 w-4/5 self-center"
+                style={{
+                    borderColor: usuarioFocused ? COLORS.info : "#ccc"
+                }}
             >
                 <Feather name="user" size={20} color={COLORS.neutralBlack} className="mr-2" />
                 <TextInput
-                    style={styles.input}
+                    className="flex-1 text-sm"
+                    style={{ color: COLORS.shadesBlack, fontFamily: "regular" }}
                     placeholder="Usuario"
                     autoCapitalize="characters"
                     value={usuario}
@@ -73,14 +103,15 @@ export default function Login() {
             </View>
 
             <View
-                style={[
-                    styles.inputContainer,
-                    { borderColor: passwordFocused ? COLORS.info : "#ccc" }
-                ]}
+                className="flex-row items-center border rounded-3xl px-4 mb-6 h-12 w-4/5 self-center"
+                style={{
+                    borderColor: passwordFocused ? COLORS.info : "#ccc"
+                }}
             >
                 <Feather name="key" size={20} color={COLORS.neutralBlack} className="mr-2" />
                 <TextInput
-                    style={styles.input}
+                    className="flex-1 text-sm"
+                    style={{ color: COLORS.shadesBlack, fontFamily: "regular" }}
                     placeholder="Contraseña"
                     secureTextEntry={secureText}
                     value={password}
@@ -88,7 +119,7 @@ export default function Login() {
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                 />
-                <Pressable onPress={() => setSecureText(!secureText)}>
+                <Pressable onPress={() => setSecureText(!secureText)} className="p-1">
                     <Feather
                         name={secureText ? "eye-off" : "eye"}
                         size={20}
@@ -99,7 +130,7 @@ export default function Login() {
 
             <Pressable
                 onPress={validaLogin}
-                className="bg-black rounded-full h-12 w-[80%] self-center justify-center items-center mb-5"
+                className="rounded-full h-12 w-4/5 self-center justify-center items-center mb-5"
                 style={{
                     backgroundColor: COLORS.primary,
                     opacity: validando ? 0.5 : 1
@@ -113,7 +144,9 @@ export default function Login() {
                 )}
             </Pressable>
 
-            <Text style={styles.footer}>Tienes detalles, contacta a Soporte Operativo.</Text>
+            <Text className="text-center text-xs mt-12" style={styles.footer}>
+                Tienes detalles, contacta a Soporte Operativo.
+            </Text>
         </ScrollView>
     )
 }
@@ -122,32 +155,9 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
         flexGrow: 1,
-        justifyContent: "center",
-        alignContent: "center"
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 25,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-        height: 50,
-        width: "80%",
-        alignItems: "center",
-        alignSelf: "center"
-    },
-    input: {
-        flex: 1,
-        fontSize: 14,
-        color: COLORS.shadesBlack,
-        fontFamily: "regular"
+        justifyContent: "center"
     },
     footer: {
-        textAlign: "center",
-        fontSize: 12,
-        marginTop: 50,
         fontFamily: "regular"
     }
 })

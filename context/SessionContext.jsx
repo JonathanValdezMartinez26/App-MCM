@@ -18,8 +18,13 @@ export const SessionProvider = ({ children }) => {
         const checkToken = async () => {
             try {
                 const storedToken = await storage.getToken()
+                const storedUser = await storage.getUser()
+
                 if (storedToken) {
                     setToken(storedToken)
+                    if (storedUser) {
+                        setUsuario(storedUser)
+                    }
                 }
             } catch (error) {
                 console.error("Error checking stored token:", error)
@@ -32,11 +37,13 @@ export const SessionProvider = ({ children }) => {
 
     const login = async (userToken, userData = null) => {
         try {
-            if (userData) {
-                setUsuario(userData)
-            }
             await storage.saveToken(userToken)
             setToken(userToken)
+
+            if (userData) {
+                await storage.saveUser(userData)
+                setUsuario(userData)
+            }
             return true
         } catch (error) {
             console.error("Error en login:", error)
@@ -46,7 +53,7 @@ export const SessionProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await storage.removeToken()
+            await storage.clearAll()
             setToken(null)
             setUsuario(null)
             return true

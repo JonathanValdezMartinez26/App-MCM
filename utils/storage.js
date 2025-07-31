@@ -12,8 +12,29 @@ export async function removeToken() {
     await AsyncStorage.removeItem("token")
 }
 
+export async function saveUser(userData) {
+    await AsyncStorage.setItem("user", JSON.stringify(userData))
+}
+
+export async function getUser() {
+    const user = await AsyncStorage.getItem("user")
+    return user ? JSON.parse(user) : null
+}
+
+export async function removeUser() {
+    await AsyncStorage.removeItem("user")
+}
+
+export async function clearAll() {
+    await AsyncStorage.multiRemove(["token", "user"])
+}
+
 export default {
     saveToken,
     getToken,
-    removeToken
+    removeToken,
+    saveUser,
+    getUser,
+    removeUser,
+    clearAll
 }

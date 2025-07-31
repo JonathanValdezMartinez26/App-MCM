@@ -1,9 +1,19 @@
-import { Tabs } from "expo-router"
+import { Tabs, router } from "expo-router"
 import { View, Text, Platform } from "react-native"
 import { Feather, AntDesign } from "@expo/vector-icons"
+import { useEffect } from "react"
 import { COLORS, FONTS, SIZES } from "../../constants"
+import { useSession } from "../../context/SessionContext"
 
 export default function TabLayout() {
+    const { token, isLoading } = useSession()
+
+    useEffect(() => {
+        if (!isLoading && !token) router.replace("/")
+    }, [token, isLoading])
+
+    if (!token) return null
+
     return (
         <Tabs
             screenOptions={{
