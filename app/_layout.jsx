@@ -5,6 +5,7 @@ import { LogBox } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { FONTS } from "../constants/fonts"
 import { SessionProvider } from "../context/SessionContext"
+import { CarteraProvider } from "../context/CarteraContext"
 import SplashScreenComponent from "../components/SplashScreen"
 
 LogBox.ignoreAllLogs()
@@ -18,14 +19,16 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <SessionProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="(screens)/DetalleCredito" />
-                    <Stack.Screen name="+not-found" />
-                </Stack>
+                <CarteraProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="index" />
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen name="(screens)/DetalleCredito" />
+                        <Stack.Screen name="+not-found" />
+                    </Stack>
 
-                {showSplash && <SplashScreenComponent onFinish={() => setShowSplash(false)} />}
+                    {showSplash && <SplashScreenComponent onFinish={() => setShowSplash(false)} />}
+                </CarteraProvider>
             </SessionProvider>
         </SafeAreaProvider>
     )

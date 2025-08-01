@@ -65,7 +65,7 @@ export default function TabLayout() {
                 name="Pago"
                 options={{
                     title: "",
-                    tabBarIcon: ({ focused }) => {
+                    tabBarIcon: () => {
                         return (
                             <View
                                 style={{

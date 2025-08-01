@@ -39,7 +39,7 @@ export default function Login() {
             const userData = response.data
             const loginSuccess = await login(userData.access_token, userData.usuario)
 
-            if (loginSuccess) router.push("/(tabs)/Cartera")
+            if (loginSuccess) router.replace("/(tabs)/Cartera")
             else
                 showError(
                     "Error del sistema",

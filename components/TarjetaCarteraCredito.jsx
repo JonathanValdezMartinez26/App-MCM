@@ -48,7 +48,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
             fechaCalc: cliente.fecha_calc || ""
         }).toString()
 
-        router.replace(`/DetalleCredito?${params}`)
+        router.push(`/DetalleCredito?${params}`)
     }
 
     return (

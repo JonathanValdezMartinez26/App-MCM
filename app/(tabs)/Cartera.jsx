@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react"
+import { useState, useContext } from "react"
 import {
     View,
     Text,
@@ -11,36 +11,19 @@ import {
 } from "react-native"
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"
-import { catalogos } from "../../services"
+import { useCartera } from "../../context/CarteraContext"
 import { Feather } from "@expo/vector-icons"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import TarjetaCarteraCredito from "../../components/TarjetaCarteraCredito"
 
 export default function Cartera() {
     const { usuario } = useSession()
+    const { clientes, loading, obtenerCartera } = useCartera()
     const insets = useContext(SafeAreaInsetsContext)
-    const [clientes, setClientes] = useState([])
     const [expandedId, setExpandedId] = useState(null)
-    const [isRefreshing, setIsRefreshing] = useState(false)
-
-    useEffect(() => {
-        actualizarClientes()
-    }, [])
 
     const actualizarClientes = async () => {
-        try {
-            setIsRefreshing(true)
-
-            const respuesta = await catalogos.getClientesEjecutivo()
-            const nuevosClientes = respuesta.data.clientes || []
-
-            setClientes(nuevosClientes)
-        } catch (error) {
-            console.error("Error al obtener clientes:", error)
-            setClientes([])
-        } finally {
-            setIsRefreshing(false)
-        }
+        await obtenerCartera(true) // Forzar actualización
     }
 
     const handleToggleExpansion = (clienteId) => {
@@ -75,8 +58,8 @@ export default function Cartera() {
                 <View className="flex-row justify-between items-center border-b border-gray-200 px-3">
                     <Text className="text-lg font-semibold my-5">Mi cartera</Text>
 
-                    <Pressable onPress={actualizarClientes} disabled={isRefreshing}>
-                        {isRefreshing ? (
+                    <Pressable onPress={actualizarClientes} disabled={loading}>
+                        {loading ? (
                             <ActivityIndicator color="black" size="small" />
                         ) : (
                             <Feather name="refresh-ccw" size={24} color="black" />
@@ -85,7 +68,7 @@ export default function Cartera() {
                 </View>
 
                 <View className="flex-1 px-5">
-                    {clientes.length === 0 && !isRefreshing ? (
+                    {clientes.length === 0 && !loading ? (
                         <View className="flex-1 justify-center items-center">
                             <Text className="text-gray-500">No tiene clientes asignados</Text>
                         </View>

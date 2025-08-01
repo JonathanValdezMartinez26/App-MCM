@@ -1,5 +1,4 @@
 import { View, Text, StyleSheet, Image, Pressable } from "react-native"
-import { router } from "expo-router"
 import { Feather } from "@expo/vector-icons"
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"

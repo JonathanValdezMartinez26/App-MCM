@@ -1,11 +1,12 @@
 import { useContext, useEffect, useState } from "react"
 import { View, Text, Pressable, ScrollView } from "react-native"
-import { useLocalSearchParams, router } from "expo-router"
-import { Feather, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
-import { creditos } from "../../services"
+import { useLocalSearchParams, router, useFocusEffect } from "expo-router"
+import { Feather, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
+import { creditos, pagosPendientes } from "../../services"
 import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
+import { useCallback } from "react"
 
 numeral.zeroFormat(0)
 numeral.nullFormat(0)
@@ -27,11 +28,12 @@ export default function DetalleCredito() {
     const [detalle, setDetalle] = useState(null)
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
+    const [pagosPendientesCredito, setPagosPendientesCredito] = useState([])
     const maxMov = 10
     const insets = useContext(SafeAreaInsetsContext)
 
     const volverAClientes = () => {
-        router.replace("/(tabs)/Cartera")
+        router.back()
     }
 
     useEffect(() => {
@@ -45,6 +47,10 @@ export default function DetalleCredito() {
                 } else {
                     console.error("Error al obtener detalle del crédito:", response.error)
                 }
+
+                // Obtener pagos pendientes para este crédito
+                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                setPagosPendientesCredito(pagosPendientes_)
             } catch (error) {
                 console.error("Error inesperado al obtener detalle del crédito:", error)
             } finally {
@@ -55,19 +61,37 @@ export default function DetalleCredito() {
         getDetalle()
     }, [noCredito])
 
+    // Refrescar pagos pendientes cuando la pantalla recibe el foco
+    useFocusEffect(
+        useCallback(() => {
+            const cargarPagosPendientes = async () => {
+                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                setPagosPendientesCredito(pagosPendientes_)
+            }
+            cargarPagosPendientes()
+        }, [noCredito])
+    )
+
     const resumenDetalle = () => {
         if (!detalle) return null
 
         const creditoInfo = detalle.detalle_credito || {}
         const movimientos = detalle.movimientos || []
 
+        // Incluir pagos pendientes en el cálculo del total pagado
         const totalPagado = movimientos.reduce((sum, m) => sum + numeral(m?.monto).value(), 0)
+        const totalPendiente = pagosPendientesCredito.reduce((sum, p) => sum + p.monto, 0)
+        const totalPagadoConPendientes = totalPagado + totalPendiente
+
         const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
         const saldoTotal = numeral(creditoInfo.saldo_total).value()
-        const progreso = saldoTotal > 0 ? totalPagado / (totalPagado + saldoTotal) : 0
+        const progreso =
+            saldoTotal > 0 ? totalPagadoConPendientes / (totalPagadoConPendientes + saldoTotal) : 0
 
         return {
             totalPagado,
+            totalPendiente,
+            totalPagadoConPendientes,
             pagoPromedio,
             saldoTotal,
             progreso,
@@ -150,19 +174,29 @@ export default function DetalleCredito() {
                                     </View>
                                 )}
                             </View>
-
-                            <Text className="text-sm text-gray-500">
-                                {resumen?.totalMovimientos || 0} movimientos registrados
-                            </Text>
                         </View>
 
                         {/* Icono para ir a registro de pago */}
                         {resumen && resumen.progreso < 1 && (
                             <Pressable
-                                onPress={() => router.push("/(tabs)/Pago")}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: "/(tabs)/Pago",
+                                        params: {
+                                            noCreditoDetalle: noCredito,
+                                            cicloDetalle: ciclo,
+                                            pagoSemanalDetalle: resumen.pagosSemana,
+                                            timestamp: Date.now().toString()
+                                        }
+                                    })
+                                }
                                 className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
                             >
-                                <MaterialIcons name="add-circle" size={28} color="white" />
+                                <MaterialCommunityIcons
+                                    name="cash-register"
+                                    size={28}
+                                    color="white"
+                                />
                             </Pressable>
                         )}
                     </View>
@@ -186,14 +220,10 @@ export default function DetalleCredito() {
                                 </View>
                             )}
 
-                            {diaPago && (
-                                <View className="items-center flex-1">
-                                    <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
-                                    <Text className="text-sm font-medium text-gray-700">
-                                        {diaPago}
-                                    </Text>
-                                </View>
-                            )}
+                            <View className="items-center flex-1">
+                                <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
+                                <Text className="text-sm font-medium text-gray-700">{diaPago}</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -233,8 +263,17 @@ export default function DetalleCredito() {
                                         </Text>
                                     </View>
                                     <Text className="text-xl font-bold text-green-800">
-                                        {numeral(resumen.totalPagado).format("$0,0.00")}
+                                        {numeral(resumen.totalPagadoConPendientes).format(
+                                            "$0,0.00"
+                                        )}
                                     </Text>
+                                    {resumen.totalPendiente > 0 && (
+                                        <Text className="text-xs text-green-600 mt-1">
+                                            Incluye{" "}
+                                            {numeral(resumen.totalPendiente).format("$0,0.00")}{" "}
+                                            pendiente
+                                        </Text>
+                                    )}
                                 </View>
 
                                 <View className="w-[48%] bg-orange-50 p-4 rounded-xl mb-3">
@@ -297,7 +336,8 @@ export default function DetalleCredito() {
 
                     {/* Historial de Movimientos */}
                     <View className="p-6 border-t border-gray-200">
-                        {detalle?.movimientos && detalle.movimientos.length > 0 ? (
+                        {(detalle?.movimientos && detalle.movimientos.length > 0) ||
+                        pagosPendientesCredito.length > 0 ? (
                             <>
                                 <View className="flex-row justify-between items-center mb-4">
                                     <Text className="text-lg font-semibold text-gray-800">
@@ -305,18 +345,73 @@ export default function DetalleCredito() {
                                     </Text>
                                     <View className="bg-blue-100 px-3 py-1 rounded-full">
                                         <Text className="text-xs font-medium text-blue-700">
-                                            {detalle.movimientos.length} total
+                                            {(detalle.movimientos?.length || 0) +
+                                                pagosPendientesCredito.length}{" "}
+                                            total
                                         </Text>
                                     </View>
                                 </View>
 
                                 {/* Lista de movimientos con mejor diseño */}
                                 <View className="space-y-3">
+                                    {/* Mostrar pagos pendientes primero */}
+                                    {pagosPendientesCredito.map((pago, index) => (
+                                        <View
+                                            key={`pendiente-${index}`}
+                                            className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-4 shadow-md"
+                                        >
+                                            <View className="flex-row justify-between items-center">
+                                                <View className="flex-row flex-1">
+                                                    <View className="flex-row items-center mb-2">
+                                                        <View className="bg-yellow-100 p-2 rounded-full mr-3">
+                                                            <MaterialIcons
+                                                                name="schedule"
+                                                                size={16}
+                                                                color="#f59e0b"
+                                                            />
+                                                        </View>
+                                                    </View>
+
+                                                    <View className="items-start">
+                                                        <Text className="text-sm font-medium text-gray-800">
+                                                            Pago{" "}
+                                                            {new Date(
+                                                                pago.fechaCaptura
+                                                            ).toLocaleDateString()}
+                                                        </Text>
+                                                        <Text className="text-xs text-gray-500">
+                                                            {new Date(
+                                                                pago.fechaCaptura
+                                                            ).toLocaleTimeString()}
+                                                        </Text>
+                                                        <View className="bg-yellow-100 px-2 py-1 rounded-md mr-2">
+                                                            <Text className="text-xs font-medium text-yellow-700">
+                                                                {pago.tipoPago === "pago"
+                                                                    ? "Pago Regular"
+                                                                    : "Multa"}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                </View>
+
+                                                <View className="items-end">
+                                                    <Text className="text-lg font-bold text-yellow-600">
+                                                        {numeral(pago.monto).format("$0,0.00")}
+                                                    </Text>
+                                                    <Text className="text-xs text-yellow-600">
+                                                        Pendiente de entrega
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    ))}
+
+                                    {/* Mostrar movimientos procesados */}
                                     {detalle.movimientos
-                                        .slice(0, maxMovimientos)
+                                        ?.slice(0, maxMovimientos)
                                         .map((mov, index) => (
                                             <View
-                                                key={index}
+                                                key={`procesado-${index}`}
                                                 className="bg-white border border-gray-200 rounded-2xl p-4 mb-4 shadow-md"
                                             >
                                                 <View className="flex-row justify-between items-center">
@@ -360,24 +455,26 @@ export default function DetalleCredito() {
                                 </View>
 
                                 {/* Mostrar más movimientos si los hay */}
-                                {detalle.movimientos.length > maxMovimientos && (
-                                    <Pressable
-                                        onPress={() =>
-                                            setMaxMovimientos(
-                                                Math.min(
-                                                    maxMovimientos + 10,
-                                                    detalle.movimientos.length
+                                {detalle.movimientos &&
+                                    detalle.movimientos.length > maxMovimientos && (
+                                        <Pressable
+                                            onPress={() =>
+                                                setMaxMovimientos(
+                                                    Math.min(
+                                                        maxMovimientos + 10,
+                                                        detalle.movimientos.length
+                                                    )
                                                 )
-                                            )
-                                        }
-                                        className="mt-4 p-3 border border-gray-300 rounded-xl"
-                                    >
-                                        <Text className="text-center text-blue-600 font-medium">
-                                            Ver más movimientos (
-                                            {detalle.movimientos.length - maxMovimientos} restantes)
-                                        </Text>
-                                    </Pressable>
-                                )}
+                                            }
+                                            className="mt-4 p-3 border border-gray-300 rounded-xl"
+                                        >
+                                            <Text className="text-center text-blue-600 font-medium">
+                                                Ver más movimientos (
+                                                {detalle.movimientos.length - maxMovimientos}{" "}
+                                                restantes)
+                                            </Text>
+                                        </Pressable>
+                                    )}
                             </>
                         ) : (
                             /* Estado vacío mejorado */
@@ -392,7 +489,18 @@ export default function DetalleCredito() {
                                     No se han registrado pagos para este crédito
                                 </Text>
                                 <Pressable
-                                    onPress={() => router.push("/(tabs)/Pago")}
+                                    onPress={() =>
+                                        router.push({
+                                            pathname: "/(tabs)/Pago",
+                                            params: {
+                                                noCreditoDetalle: creditoInfo.no_credito,
+                                                cicloDetalle: creditoInfo.ciclo,
+                                                nombre: creditoInfo.nombre,
+                                                pagoSemanalDetalle: creditoInfo.pago_semanal,
+                                                timestamp: Date.now().toString()
+                                            }
+                                        })
+                                    }
                                     className="bg-blue-500 px-6 py-3 rounded-xl"
                                 >
                                     <Text className="text-white font-medium">
