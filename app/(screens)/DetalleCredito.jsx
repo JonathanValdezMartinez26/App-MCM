@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react"
 import { View, Text, Pressable, ScrollView } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
-import { Feather, MaterialIcons } from "@expo/vector-icons"
+import { Feather, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
 import { creditos } from "../../services"
 import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
@@ -11,8 +11,19 @@ numeral.zeroFormat(0)
 numeral.nullFormat(0)
 
 export default function DetalleCredito() {
-    const { noCredito, ciclo, nombre, saldoTotal, tipoCartera, diasMora, moraTotal, fechaCalc } =
-        useLocalSearchParams()
+    const {
+        noCredito,
+        ciclo,
+        nombre,
+        diaPago,
+        saldoTotal,
+        cantEntregada,
+        tipoCartera,
+        fechaInicio,
+        diasMora,
+        moraTotal,
+        fechaCalc
+    } = useLocalSearchParams()
     const [detalle, setDetalle] = useState(null)
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
@@ -53,8 +64,7 @@ export default function DetalleCredito() {
         const totalPagado = movimientos.reduce((sum, m) => sum + numeral(m?.monto).value(), 0)
         const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
         const saldoTotal = numeral(creditoInfo.saldo_total).value()
-        let progreso = saldoTotal > 0 ? totalPagado / saldoTotal : 0
-        progreso = totalPagado < saldoTotal ? progreso : 1
+        const progreso = saldoTotal > 0 ? totalPagado / (totalPagado + saldoTotal) : 0
 
         return {
             totalPagado,
@@ -135,7 +145,7 @@ export default function DetalleCredito() {
                                 {diasMora && parseInt(diasMora) > 0 && (
                                     <View className="bg-red-100 px-3 py-1 rounded-full">
                                         <Text className="text-sm font-medium text-red-700">
-                                            {diasMora} días mora
+                                            {diasMora} días en mora
                                         </Text>
                                     </View>
                                 )}
@@ -176,13 +186,11 @@ export default function DetalleCredito() {
                                 </View>
                             )}
 
-                            {fechaCalc && (
+                            {diaPago && (
                                 <View className="items-center flex-1">
-                                    <Text className="text-xs text-gray-600 mb-1">
-                                        Último Cálculo
-                                    </Text>
+                                    <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
                                     <Text className="text-sm font-medium text-gray-700">
-                                        {fechaCalc}
+                                        {diaPago}
                                     </Text>
                                 </View>
                             )}
@@ -209,13 +217,11 @@ export default function DetalleCredito() {
                                             color="#3b82f6"
                                         />
                                         <Text className="text-sm font-medium text-blue-700 ml-2">
-                                            Monto Otorgado
+                                            Préstamo
                                         </Text>
                                     </View>
                                     <Text className="text-xl font-bold text-blue-800">
-                                        {numeral(saldoTotal || resumen.saldoTotal).format(
-                                            "$0,0.00"
-                                        )}
+                                        {numeral(cantEntregada).format("$0,0.00")}
                                     </Text>
                                 </View>
 
@@ -233,7 +239,11 @@ export default function DetalleCredito() {
 
                                 <View className="w-[48%] bg-orange-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
-                                        <MaterialIcons name="schedule" size={20} color="#ea580c" />
+                                        <FontAwesome5
+                                            name="hand-holding-usd"
+                                            size={20}
+                                            color="#ea580c"
+                                        />
                                         <Text className="text-sm font-medium text-orange-700 ml-2">
                                             Pago Semanal
                                         </Text>
@@ -246,16 +256,16 @@ export default function DetalleCredito() {
                                 <View className="w-[48%] bg-purple-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
                                         <MaterialIcons
-                                            name="trending-up"
+                                            name="calendar-month"
                                             size={20}
                                             color="#9333ea"
                                         />
                                         <Text className="text-sm font-medium text-purple-700 ml-2">
-                                            Pago Promedio
+                                            Plazo
                                         </Text>
                                     </View>
                                     <Text className="text-xl font-bold text-purple-800">
-                                        {numeral(resumen.pagoPromedio).format("$0,0.00")}
+                                        {detalle.detalle_credito.plazo}
                                     </Text>
                                 </View>
                             </View>
@@ -281,15 +291,6 @@ export default function DetalleCredito() {
                                         }}
                                     />
                                 </View>
-
-                                <Text className="text-xs text-gray-600 mt-2 text-center">
-                                    {resumen.progreso >= 1
-                                        ? "¡Crédito completado!"
-                                        : `Faltan ${numeral(
-                                              (saldoTotal || resumen.saldoTotal) -
-                                                  resumen.totalPagado
-                                          ).format("$0,0.00")} por pagar`}
-                                </Text>
                             </View>
                         </View>
                     )}
@@ -316,10 +317,10 @@ export default function DetalleCredito() {
                                         .map((mov, index) => (
                                             <View
                                                 key={index}
-                                                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+                                                className="bg-white border border-gray-200 rounded-2xl p-4 mb-4 shadow-md"
                                             >
                                                 <View className="flex-row justify-between items-center">
-                                                    <View className="flex-1">
+                                                    <View className="flex-row flex-1">
                                                         <View className="flex-row items-center mb-2">
                                                             <View className="bg-green-100 p-2 rounded-full mr-3">
                                                                 <MaterialIcons
@@ -328,19 +329,16 @@ export default function DetalleCredito() {
                                                                     color="#16a34a"
                                                                 />
                                                             </View>
-                                                            <View>
-                                                                <Text className="text-sm font-medium text-gray-800">
-                                                                    Pago realizado
-                                                                </Text>
-                                                                <Text className="text-xs text-gray-500">
-                                                                    {mov.fecha_captura ||
-                                                                        "Sin fecha"}
-                                                                </Text>
-                                                            </View>
                                                         </View>
 
-                                                        <View className="flex-row items-center">
-                                                            <View className="bg-blue-100 px-2 py-1 rounded-md mr-2">
+                                                        <View className="items-start">
+                                                            <Text className="text-sm font-medium text-gray-800">
+                                                                Pago {mov.fecha_valor}
+                                                            </Text>
+                                                            <Text className="text-xs text-gray-500">
+                                                                {mov.fecha_captura || "Sin fecha"}
+                                                            </Text>
+                                                            <View className="bg-blue-100 px-2 py-1 rounded-md mr-2 ">
                                                                 <Text className="text-xs font-medium text-blue-700">
                                                                     {mov.tipo || "Pago"}
                                                                 </Text>
@@ -351,6 +349,9 @@ export default function DetalleCredito() {
                                                     <View className="items-end">
                                                         <Text className="text-lg font-bold text-green-600">
                                                             {numeral(mov?.monto).format("$0,0.00")}
+                                                        </Text>
+                                                        <Text className="text-xs">
+                                                            Procesado en caja
                                                         </Text>
                                                     </View>
                                                 </View>

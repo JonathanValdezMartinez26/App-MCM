@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { View, Text, Pressable, Animated } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import { router } from "expo-router"
+import numeral from "numeral"
 
 export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle }) {
     const [animatedHeight] = useState(new Animated.Value(isExpanded ? 1 : 0))
@@ -19,7 +20,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
 
     const expandedHeight = animatedHeight.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, Math.max(contentHeight, 200)]
+        outputRange: [0, Math.max(contentHeight, 170)]
     })
 
     const opacity = animatedHeight.interpolate({
@@ -37,6 +38,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
             noCredito: cliente.cdgns,
             ciclo: cliente.ciclo,
             nombre: cliente.nombre || "",
+            diaPago: cliente.dia_pago || "",
             saldoTotal: cliente.saldo_total || "0",
             cantEntregada: cliente.cant_entre || "0",
             tipoCartera: cliente.tipo_cartera || "",
@@ -59,7 +61,9 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                     <Text className="font-semibold text-base">
                         {cliente.nombre || "No disponible"}
                     </Text>
-                    <Text className="text-gray-600 text-sm mb-1">Crédito: {cliente.cdgns}</Text>
+                    <Text className="text-gray-600 text-sm mb-1">
+                        Crédito: {cliente.cdgns} • Ciclo: {cliente.ciclo}
+                    </Text>
                     <View className="flex-row items-center">
                         <View
                             className={`px-2 py-1 rounded-full mr-2 ${
@@ -85,7 +89,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                         {cliente.dias_mora > 0 && (
                             <View className="bg-red-100 px-2 py-1 rounded-full">
                                 <Text className="text-xs font-medium text-red-700">
-                                    {cliente.dias_mora} días mora
+                                    {cliente.dias_mora} días en mora
                                 </Text>
                             </View>
                         )}
@@ -130,16 +134,19 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                     <View className="flex-row justify-between items-start">
                         <View className="flex-1">
                             <Text className="text-sm text-gray-700 mb-1">
-                                Ciclo: {cliente.ciclo}
+                                Fecha de inicio: {cliente.inicio || "N/D"}
                             </Text>
                             <Text className="text-sm text-gray-700 mb-1">
-                                Tipo de cartera: {cliente.tipo_cartera || "No disponible"}
+                                Día de pago: {cliente.dia_pago || "N/D"}
                             </Text>
                             <Text className="text-sm text-gray-700 mb-1">
-                                Saldo total: $
-                                {parseFloat(cliente.saldo_total || 0).toLocaleString("es-MX", {
-                                    minimumFractionDigits: 2
-                                })}
+                                Tipo de cartera: {cliente.tipo_cartera || "N/D"}
+                            </Text>
+                            <Text className="text-sm text-gray-700 mb-1">
+                                Préstamo: {numeral(cliente.cant_entre).format("$0,0.00")}
+                            </Text>
+                            <Text className="text-sm text-gray-700 mb-1">
+                                Saldo: {numeral(cliente.saldo_total).format("$0,0.00")}
                             </Text>
                             {cliente.dias_mora > 0 && (
                                 <Text className="text-sm text-red-600 mb-1 font-medium">
@@ -148,10 +155,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                             )}
                             {cliente.mora_total > 0 && (
                                 <Text className="text-sm text-red-600 mb-1 font-medium">
-                                    Mora total: $
-                                    {parseFloat(cliente.mora_total).toLocaleString("es-MX", {
-                                        minimumFractionDigits: 2
-                                    })}
+                                    Mora total: {numeral(cliente.mora_total).format("$0,0.00")}
                                 </Text>
                             )}
                         </View>
