@@ -17,7 +17,6 @@ export default function Perfil() {
             [
                 {
                     text: "Cancelar",
-                    onPress: () => {},
                     style: "cancel"
                 },
                 {

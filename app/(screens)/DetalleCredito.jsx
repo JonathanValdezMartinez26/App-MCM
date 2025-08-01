@@ -11,7 +11,8 @@ numeral.zeroFormat(0)
 numeral.nullFormat(0)
 
 export default function DetalleCredito() {
-    const { noCredito, ciclo } = useLocalSearchParams()
+    const { noCredito, ciclo, nombre, saldoTotal, tipoCartera, diasMora, moraTotal, fechaCalc } =
+        useLocalSearchParams()
     const [detalle, setDetalle] = useState(null)
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
@@ -19,7 +20,7 @@ export default function DetalleCredito() {
     const insets = useContext(SafeAreaInsetsContext)
 
     const volverAClientes = () => {
-        router.push("/(tabs)/Cartera")
+        router.replace("/(tabs)/Cartera")
     }
 
     useEffect(() => {
@@ -96,26 +97,97 @@ export default function DetalleCredito() {
 
             {/* Content Container */}
             <View className="bg-white flex-1 rounded-t-3xl">
-                {/* Header Info - Sección fija */}
-                <View className="p-6 border-b border-gray-200 flex-row justify-between items-center">
-                    <View className="flex-1">
-                        <Text className="text-2xl font-bold text-gray-800 mb-2">
-                            Crédito {noCredito}
-                        </Text>
-                        <Text className="text-base text-gray-600">
-                            Ciclo {ciclo} • {resumen?.totalMovimientos || 0} movimientos
-                        </Text>
+                {/* Header Info - Información del cliente y crédito */}
+                <View className="p-6 border-b border-gray-200">
+                    <View className="flex-row justify-between items-start mb-4">
+                        <View className="flex-1">
+                            <Text className="text-2xl font-bold text-gray-800 mb-1">
+                                {nombre || `Cliente ${noCredito}`}
+                            </Text>
+                            <Text className="text-base text-gray-600 mb-2">
+                                Crédito {noCredito} • Ciclo {ciclo}
+                            </Text>
+
+                            {/* Status del crédito */}
+                            <View className="flex-row items-center mb-2">
+                                <View
+                                    className={`px-3 py-1 rounded-full mr-3 ${
+                                        tipoCartera === "VIGENTE"
+                                            ? "bg-green-100"
+                                            : tipoCartera === "VENCIDA"
+                                            ? "bg-red-100"
+                                            : "bg-yellow-100"
+                                    }`}
+                                >
+                                    <Text
+                                        className={`text-sm font-medium ${
+                                            tipoCartera === "VIGENTE"
+                                                ? "text-green-700"
+                                                : tipoCartera === "VENCIDA"
+                                                ? "text-red-700"
+                                                : "text-yellow-700"
+                                        }`}
+                                    >
+                                        {tipoCartera || "Sin estado"}
+                                    </Text>
+                                </View>
+
+                                {diasMora && parseInt(diasMora) > 0 && (
+                                    <View className="bg-red-100 px-3 py-1 rounded-full">
+                                        <Text className="text-sm font-medium text-red-700">
+                                            {diasMora} días mora
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+
+                            <Text className="text-sm text-gray-500">
+                                {resumen?.totalMovimientos || 0} movimientos registrados
+                            </Text>
+                        </View>
+
+                        {/* Icono para ir a registro de pago */}
+                        {resumen && resumen.progreso < 1 && (
+                            <Pressable
+                                onPress={() => router.push("/(tabs)/Pago")}
+                                className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
+                            >
+                                <MaterialIcons name="add-circle" size={28} color="white" />
+                            </Pressable>
+                        )}
                     </View>
 
-                    {/* Icono para ir a registro de pago */}
-                    {resumen.progreso < 1 && (
-                        <Pressable
-                            onPress={() => router.push("/(tabs)/Pago")}
-                            className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
-                        >
-                            <MaterialIcons name="add-circle" size={28} color="white" />
-                        </Pressable>
-                    )}
+                    {/* Información financiera rápida */}
+                    <View className="bg-gray-50 rounded-xl p-4">
+                        <View className="flex-row justify-between items-center">
+                            <View className="items-center flex-1">
+                                <Text className="text-xs text-gray-600 mb-1">Saldo Total</Text>
+                                <Text className="text-lg font-bold text-gray-800">
+                                    {numeral(saldoTotal || 0).format("$0,0.00")}
+                                </Text>
+                            </View>
+
+                            {moraTotal && parseFloat(moraTotal) > 0 && (
+                                <View className="items-center flex-1">
+                                    <Text className="text-xs text-gray-600 mb-1">Mora Total</Text>
+                                    <Text className="text-lg font-bold text-red-600">
+                                        {numeral(moraTotal).format("$0,0.00")}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {fechaCalc && (
+                                <View className="items-center flex-1">
+                                    <Text className="text-xs text-gray-600 mb-1">
+                                        Último Cálculo
+                                    </Text>
+                                    <Text className="text-sm font-medium text-gray-700">
+                                        {fechaCalc}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
                 </View>
 
                 {/* Contenido con scroll */}
@@ -124,130 +196,208 @@ export default function DetalleCredito() {
                     {resumen && (
                         <View className="p-6">
                             <Text className="text-lg font-semibold text-gray-800 mb-4">
-                                Progreso del Crédito
+                                Análisis del Crédito
                             </Text>
 
-                            {/* Cards de estadísticas */}
-                            <View className="flex-row flex-wrap justify-between">
-                                <View className="w-[33%] p-4 rounded-xl mb-3 justify-center items-center">
-                                    <MaterialIcons
-                                        name="account-balance"
-                                        size={24}
-                                        color="#dc2626"
-                                    />
-                                    <Text className="text-xs text-gray-600 mt-1">Otorgado</Text>
-                                    <Text className="text-lg font-bold ">
-                                        {numeral(resumen.saldoTotal).format("$0,0.00")}
+                            {/* Cards de estadísticas mejoradas */}
+                            <View className="flex-row flex-wrap justify-between mb-4">
+                                <View className="w-[48%] bg-blue-50 p-4 rounded-xl mb-3">
+                                    <View className="flex-row items-center mb-2">
+                                        <MaterialIcons
+                                            name="account-balance"
+                                            size={20}
+                                            color="#3b82f6"
+                                        />
+                                        <Text className="text-sm font-medium text-blue-700 ml-2">
+                                            Monto Otorgado
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xl font-bold text-blue-800">
+                                        {numeral(saldoTotal || resumen.saldoTotal).format(
+                                            "$0,0.00"
+                                        )}
                                     </Text>
                                 </View>
 
-                                <View className="w-[33%] p-4 rounded-xl mb-3 justify-center items-center">
-                                    <MaterialIcons name="schedule" size={24} color="#ea580c" />
-                                    <Text className="text-xs text-gray-600 mt-1">Pago Semanal</Text>
-                                    <Text className="text-lg font-bold ">
+                                <View className="w-[48%] bg-green-50 p-4 rounded-xl mb-3">
+                                    <View className="flex-row items-center mb-2">
+                                        <MaterialIcons name="payments" size={20} color="#16a34a" />
+                                        <Text className="text-sm font-medium text-green-700 ml-2">
+                                            Total Pagado
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xl font-bold text-green-800">
+                                        {numeral(resumen.totalPagado).format("$0,0.00")}
+                                    </Text>
+                                </View>
+
+                                <View className="w-[48%] bg-orange-50 p-4 rounded-xl mb-3">
+                                    <View className="flex-row items-center mb-2">
+                                        <MaterialIcons name="schedule" size={20} color="#ea580c" />
+                                        <Text className="text-sm font-medium text-orange-700 ml-2">
+                                            Pago Semanal
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xl font-bold text-orange-800">
                                         {numeral(resumen.pagosSemana).format("$0,0.00")}
                                     </Text>
                                 </View>
 
-                                <View className="w-[33%] p-4 rounded-xl mb-3 justify-center items-center">
-                                    <MaterialIcons name="payments" size={24} color="#16a34a" />
-                                    <Text className="text-xs text-gray-600 mt-1">Total Pagado</Text>
-                                    <Text className="text-lg font-bold ">
-                                        {numeral(resumen.totalPagado).format("$0,0.00")}
+                                <View className="w-[48%] bg-purple-50 p-4 rounded-xl mb-3">
+                                    <View className="flex-row items-center mb-2">
+                                        <MaterialIcons
+                                            name="trending-up"
+                                            size={20}
+                                            color="#9333ea"
+                                        />
+                                        <Text className="text-sm font-medium text-purple-700 ml-2">
+                                            Pago Promedio
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xl font-bold text-purple-800">
+                                        {numeral(resumen.pagoPromedio).format("$0,0.00")}
                                     </Text>
                                 </View>
                             </View>
 
-                            <View className="bg-blue-50 rounded-2xl p-4 mb-4">
+                            {/* Barra de progreso mejorada */}
+                            <View className="bg-gray-50 rounded-2xl p-4">
                                 <View className="flex-row justify-between items-center mb-3">
-                                    <Text className="text-sm text-gray-600">Progreso de pago</Text>
+                                    <Text className="text-sm font-medium text-gray-700">
+                                        Progreso de Pago
+                                    </Text>
                                     <Text className="text-lg font-bold text-blue-600">
                                         {numeral(resumen.progreso).format("0.0%")}
                                     </Text>
                                 </View>
 
-                                {/* Barra de progreso visual */}
-                                <View className="bg-blue-200 h-3 rounded-full overflow-hidden">
+                                <View className="bg-gray-200 h-3 rounded-full overflow-hidden">
                                     <View
                                         className="h-full rounded-full"
                                         style={{
                                             width: `${Math.min(resumen.progreso * 100, 100)}%`,
-                                            backgroundColor: COLORS.primary
+                                            backgroundColor:
+                                                resumen.progreso >= 1 ? "#16a34a" : COLORS.primary
                                         }}
                                     />
                                 </View>
+
+                                <Text className="text-xs text-gray-600 mt-2 text-center">
+                                    {resumen.progreso >= 1
+                                        ? "¡Crédito completado!"
+                                        : `Faltan ${numeral(
+                                              (saldoTotal || resumen.saldoTotal) -
+                                                  resumen.totalPagado
+                                          ).format("$0,0.00")} por pagar`}
+                                </Text>
                             </View>
                         </View>
                     )}
 
-                    {/* Resumen de Movimientos Recientes */}
-
+                    {/* Historial de Movimientos */}
                     <View className="p-6 border-t border-gray-200">
                         {detalle?.movimientos && detalle.movimientos.length > 0 ? (
                             <>
-                                <Text className="text-lg font-semibold text-gray-800 mb-4">
-                                    Últimos {maxMovimientos} movimientos
-                                </Text>
-                                {/* Encabezado de la tabla */}
-                                <View className="bg-gray-100 rounded-t-xl p-4 flex-row">
-                                    <Text className="flex-1 text-sm font-bold text-gray-700 text-center">
-                                        Fecha
+                                <View className="flex-row justify-between items-center mb-4">
+                                    <Text className="text-lg font-semibold text-gray-800">
+                                        Historial de Pagos
                                     </Text>
-                                    <Text className="flex-1 text-sm font-bold text-gray-700 text-center">
-                                        Tipo
-                                    </Text>
-                                    <Text className="flex-1 text-sm font-bold text-gray-700 text-center">
-                                        Monto
-                                    </Text>
+                                    <View className="bg-blue-100 px-3 py-1 rounded-full">
+                                        <Text className="text-xs font-medium text-blue-700">
+                                            {detalle.movimientos.length} total
+                                        </Text>
+                                    </View>
                                 </View>
 
-                                {/* Filas de datos */}
-                                <View className="bg-white border border-gray-100 rounded-b-xl">
+                                {/* Lista de movimientos con mejor diseño */}
+                                <View className="space-y-3">
                                     {detalle.movimientos
                                         .slice(0, maxMovimientos)
                                         .map((mov, index) => (
                                             <View
                                                 key={index}
-                                                className={`flex-row p-4 ${
-                                                    index !==
-                                                    detalle.movimientos.slice(0, maxMovimientos)
-                                                        .length -
-                                                        1
-                                                        ? "border-b border-gray-100"
-                                                        : ""
-                                                }`}
+                                                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
                                             >
-                                                <View className="flex-1 items-center">
-                                                    <Text className="text-sm text-gray-800 text-center">
-                                                        {mov.fecha_captura || "Sin fecha"}
-                                                    </Text>
-                                                </View>
-                                                <View className="flex-1 items-center">
-                                                    <View className="bg-blue-100 px-2 py-1 rounded-lg">
-                                                        <Text className="text-xs font-medium text-blue-800">
-                                                            {mov.tipo || "N/A"}
+                                                <View className="flex-row justify-between items-center">
+                                                    <View className="flex-1">
+                                                        <View className="flex-row items-center mb-2">
+                                                            <View className="bg-green-100 p-2 rounded-full mr-3">
+                                                                <MaterialIcons
+                                                                    name="attach-money"
+                                                                    size={16}
+                                                                    color="#16a34a"
+                                                                />
+                                                            </View>
+                                                            <View>
+                                                                <Text className="text-sm font-medium text-gray-800">
+                                                                    Pago realizado
+                                                                </Text>
+                                                                <Text className="text-xs text-gray-500">
+                                                                    {mov.fecha_captura ||
+                                                                        "Sin fecha"}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+
+                                                        <View className="flex-row items-center">
+                                                            <View className="bg-blue-100 px-2 py-1 rounded-md mr-2">
+                                                                <Text className="text-xs font-medium text-blue-700">
+                                                                    {mov.tipo || "Pago"}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+
+                                                    <View className="items-end">
+                                                        <Text className="text-lg font-bold text-green-600">
+                                                            {numeral(mov?.monto).format("$0,0.00")}
                                                         </Text>
                                                     </View>
-                                                </View>
-                                                <View className="flex-1 items-center">
-                                                    <Text className="text-sm font-bold text-green-600">
-                                                        {numeral(mov?.monto).format("$0,0.00")}
-                                                    </Text>
                                                 </View>
                                             </View>
                                         ))}
                                 </View>
+
+                                {/* Mostrar más movimientos si los hay */}
+                                {detalle.movimientos.length > maxMovimientos && (
+                                    <Pressable
+                                        onPress={() =>
+                                            setMaxMovimientos(
+                                                Math.min(
+                                                    maxMovimientos + 10,
+                                                    detalle.movimientos.length
+                                                )
+                                            )
+                                        }
+                                        className="mt-4 p-3 border border-gray-300 rounded-xl"
+                                    >
+                                        <Text className="text-center text-blue-600 font-medium">
+                                            Ver más movimientos (
+                                            {detalle.movimientos.length - maxMovimientos} restantes)
+                                        </Text>
+                                    </Pressable>
+                                )}
                             </>
                         ) : (
-                            /* Estado vacío cuando no hay movimientos */
+                            /* Estado vacío mejorado */
                             <View className="bg-gray-50 rounded-xl p-8 items-center">
-                                <MaterialIcons name="inbox" size={48} color="#9CA3AF" />
-                                <Text className="text-lg font-medium text-gray-500 mt-3 mb-1">
-                                    Sin movimientos
+                                <View className="bg-gray-200 p-4 rounded-full mb-4">
+                                    <MaterialIcons name="inbox" size={32} color="#9CA3AF" />
+                                </View>
+                                <Text className="text-lg font-medium text-gray-600 mb-2">
+                                    Sin movimientos registrados
                                 </Text>
-                                <Text className="text-sm text-gray-400 text-center">
+                                <Text className="text-sm text-gray-500 text-center mb-4">
                                     No se han registrado pagos para este crédito
                                 </Text>
+                                <Pressable
+                                    onPress={() => router.push("/(tabs)/Pago")}
+                                    className="bg-blue-500 px-6 py-3 rounded-xl"
+                                >
+                                    <Text className="text-white font-medium">
+                                        Registrar primer pago
+                                    </Text>
+                                </Pressable>
                             </View>
                         )}
                     </View>

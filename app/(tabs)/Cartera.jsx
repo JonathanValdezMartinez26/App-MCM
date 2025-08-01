@@ -1,13 +1,11 @@
-import { useEffect, useState, useRef, useContext } from "react"
+import { useEffect, useState, useContext } from "react"
 import {
     View,
     Text,
-    StyleSheet,
     StatusBar,
     Image,
     FlatList,
     ActivityIndicator,
-    Animated,
     Pressable,
     Platform
 } from "react-native"
@@ -16,7 +14,7 @@ import { useSession } from "../../context/SessionContext"
 import { catalogos } from "../../services"
 import { Feather } from "@expo/vector-icons"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
-import { router } from "expo-router"
+import TarjetaCarteraCredito from "../../components/TarjetaCarteraCredito"
 
 export default function Cartera() {
     const { usuario } = useSession()
@@ -45,74 +43,8 @@ export default function Cartera() {
         }
     }
 
-    const TarjetaAnimada = ({ cliente, index }) => {
-        const opacity = useRef(new Animated.Value(0)).current
-        const isExpanded = expandedId === cliente.cdgns
-
-        const toggleExpansion = () => {
-            setExpandedId(isExpanded ? null : cliente.cdgns)
-        }
-
-        useEffect(() => {
-            if (isRefreshing) {
-                Animated.timing(opacity, {
-                    toValue: 1,
-                    duration: 800,
-                    delay: index * 500,
-                    useNativeDriver: true
-                }).start()
-            } else {
-                opacity.setValue(1)
-            }
-        }, [])
-
-        return (
-            <Animated.View style={{ opacity }}>
-                <Pressable
-                    onPress={toggleExpansion}
-                    className="bg-white rounded-2xl shadow-md p-4 mb-4 border border-gray-200"
-                >
-                    <View className="flex-row justify-between items-center">
-                        <View className="flex-1">
-                            <Text className="font-semibold">
-                                {cliente.nombre || "No disponible"}
-                            </Text>
-                            <Text className="text-gray-600">Crédito: {cliente.cdgns}</Text>
-                        </View>
-                        <Feather
-                            name={isExpanded ? "chevron-up" : "chevron-down"}
-                            size={20}
-                            color="#6B7280"
-                        />
-                    </View>
-
-                    {isExpanded && (
-                        <View className="mt-3 pt-3 border-t border-gray-200 border-dashed">
-                            <View className="flex-row justify-between items-start">
-                                <View className="flex-1">
-                                    <Text className="text-sm text-gray-700 mb-1">
-                                        Ciclo: {cliente.ciclo}
-                                    </Text>
-                                    <Text className="text-sm text-gray-700">
-                                        Fecha de inicio: {cliente.inicio || "No disponible"}
-                                    </Text>
-                                </View>
-                                <Pressable
-                                    onPress={() =>
-                                        router.push(
-                                            `/DetalleCredito?noCredito=${cliente.cdgns}&ciclo=${cliente.ciclo}`
-                                        )
-                                    }
-                                    className="ml-3 p-2 bg-blue-50 rounded-full"
-                                >
-                                    <Feather name="eye" size={16} color="#3B82F6" />
-                                </Pressable>
-                            </View>
-                        </View>
-                    )}
-                </Pressable>
-            </Animated.View>
-        )
+    const handleToggleExpansion = (clienteId) => {
+        setExpandedId(expandedId === clienteId ? null : clienteId)
     }
 
     return (
@@ -126,7 +58,16 @@ export default function Cartera() {
         >
             <StatusBar barStyle="light-content" />
             <View className="flex-row items-center p-4">
-                <Image source={images.avatar} style={styles.avatar} />
+                <Image
+                    source={images.avatar}
+                    style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        borderColor: COLORS.white,
+                        borderWidth: 1
+                    }}
+                />
                 <Text className="flex-1 ml-2.5 text-white">HOLA, {usuario?.nombre}</Text>
             </View>
 
@@ -152,11 +93,15 @@ export default function Cartera() {
                         <FlatList
                             data={clientes}
                             keyExtractor={(cliente) => cliente.cdgns}
-                            renderItem={({ item, index }) => (
-                                <TarjetaAnimada cliente={item} index={index} />
+                            renderItem={({ item }) => (
+                                <TarjetaCarteraCredito
+                                    cliente={item}
+                                    isExpanded={expandedId === item.cdgns}
+                                    onToggle={() => handleToggleExpansion(item.cdgns)}
+                                />
                             )}
                             showsVerticalScrollIndicator={false}
-                            className=" pt-2"
+                            className="pt-2"
                         />
                     )}
                 </View>
@@ -164,13 +109,3 @@ export default function Cartera() {
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        borderColor: COLORS.white,
-        borderWidth: 1
-    }
-})

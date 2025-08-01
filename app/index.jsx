@@ -61,7 +61,7 @@ export default function index() {
     // Si no hay token pero ya completó onboarding, mostrar login
     return (
         <SafeAreaProvider>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <View
                 className="flex-1"
                 style={{
