@@ -179,17 +179,16 @@ export default function DetalleCredito() {
                         {/* Icono para ir a registro de pago */}
                         {resumen && resumen.progreso < 1 && (
                             <Pressable
-                                onPress={() =>
-                                    router.push({
-                                        pathname: "/(tabs)/Pago",
-                                        params: {
-                                            noCreditoDetalle: noCredito,
-                                            cicloDetalle: ciclo,
-                                            pagoSemanalDetalle: resumen.pagosSemana,
-                                            timestamp: Date.now().toString()
-                                        }
+                                onPress={() => {
+                                    const params = new URLSearchParams({
+                                        noCreditoDetalle: noCredito,
+                                        cicloDetalle: ciclo,
+                                        pagoSemanalDetalle: resumen.pagosSemana,
+                                        timestamp: Date.now().toString()
                                     })
-                                }
+
+                                    router.push(`/(tabs)/Pago?${params}`)
+                                }}
                                 className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
                             >
                                 <MaterialCommunityIcons
