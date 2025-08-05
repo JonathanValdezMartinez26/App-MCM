@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, Image, Pressable } from "react-native"
-import { Feather } from "@expo/vector-icons"
+import { Feather, MaterialIcons } from "@expo/vector-icons"
+import { router } from "expo-router"
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"
 import CustomAlert from "../../components/CustomAlert"
@@ -72,8 +73,20 @@ export default function Perfil() {
             </View>
 
             <View className="flex-1 justify-center items-center px-8 py-12">
+                {/* Botón Entregar Pagos */}
                 <Pressable
-                    className="bg-red-50 border border-red-200 rounded-2xl px-8 py-4 flex-row items-center"
+                    className="bg-green-50 border border-green-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
+                    onPress={() => router.push("/(screens)/EntregarPagos")}
+                >
+                    <MaterialIcons name="local-shipping" size={24} color="#16a34a" />
+                    <Text className="text-green-600 text-base font-medium ml-3">
+                        Entregar Pagos
+                    </Text>
+                </Pressable>
+
+                {/* Botón Cerrar Sesión */}
+                <Pressable
+                    className="bg-red-50 border border-red-200 rounded-2xl px-8 py-4 flex-row items-center w-full"
                     onPress={cierraSesion}
                 >
                     <Feather name="log-out" size={24} color={COLORS.error} />

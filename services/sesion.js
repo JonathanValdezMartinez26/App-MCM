@@ -1,5 +1,6 @@
 import { apiClient, API_CONFIG } from "./api"
 import storage from "../utils/storage"
+import catalogos from "./catalogos"
 
 /**
  * Servicios de autenticación
@@ -17,6 +18,17 @@ export default {
                 usuario,
                 password
             })
+
+            // Si el login es exitoso, inicializar catálogos
+            if (response.status === API_CONFIG.HTTP_STATUS.OK) {
+                try {
+                    console.log("Login exitoso, inicializando catálogos...")
+                    await catalogos.inicializarCatalogos()
+                } catch (error) {
+                    console.warn("Error al inicializar catálogos tras login:", error)
+                    // No afectar el login si falla la carga de catálogos
+                }
+            }
 
             return {
                 success: true,
@@ -49,6 +61,46 @@ export default {
                 success: false,
                 error: errorMessage,
                 status: error.response?.status || null
+            }
+        }
+    },
+
+    /**
+     * Inicializar sesión (verificar si ya está logueado y cargar catálogos)
+     * @returns {Promise} - Resultado de la inicialización
+     */
+    inicializarSesion: async () => {
+        try {
+            const token = await storage.getToken()
+
+            if (token) {
+                console.log("Token encontrado, inicializando catálogos...")
+                await catalogos.inicializarCatalogos()
+
+                return {
+                    success: true,
+                    sesionActiva: true,
+                    catalogosInicializados: true
+                }
+            } else {
+                // Sin token, solo cargar catálogos locales
+                const tiposLocal = await catalogos.getTiposPagoLocal()
+
+                return {
+                    success: true,
+                    sesionActiva: false,
+                    catalogosInicializados: false,
+                    tiposPagoLocal: tiposLocal
+                }
+            }
+        } catch (error) {
+            console.error("Error al inicializar sesión:", error)
+
+            return {
+                success: false,
+                sesionActiva: false,
+                catalogosInicializados: false,
+                error: error.message
             }
         }
     },

@@ -1,4 +1,4 @@
-import { Pressable, Text, Linking } from "react-native"
+import { Pressable, Text, Linking, Platform } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import { COLORS } from "../constants"
 import { useCustomAlert } from "../hooks/useCustomAlert"
@@ -7,7 +7,6 @@ import CustomAlert from "./CustomAlert"
 export default function ContactSupport() {
     const { alertRef, showInfo, showError } = useCustomAlert()
     const phoneNumber = "+5215650921242"
-    const formattedPhone = "+52 1 56 5092 1242"
 
     const handleWhatsApp = () => {
         showInfo(
@@ -72,21 +71,36 @@ export default function ContactSupport() {
 
     const makePhoneCall = async () => {
         try {
-            const phoneUrl = `tel:${phoneNumber}`
+            // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
+            const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, "")
+            const phoneUrl = `tel:${cleanPhoneNumber}`
             const canOpen = await Linking.canOpenURL(phoneUrl)
 
             if (canOpen) {
                 await Linking.openURL(phoneUrl)
             } else {
-                showError(
-                    "Error al realizar llamada",
-                    "No se pudo realizar la llamada desde este dispositivo."
-                )
+                // Intentar con dialer en Android
+                if (Platform.OS === "android") {
+                    const dialerUrl = `tel:${cleanPhoneNumber}`
+                    try {
+                        await Linking.openURL(dialerUrl)
+                    } catch (androidError) {
+                        showError(
+                            "Error al realizar llamada",
+                            "No se encontró una aplicación de teléfono en este dispositivo."
+                        )
+                    }
+                } else {
+                    showError(
+                        "Error al realizar llamada",
+                        "La función de llamadas no está disponible en este dispositivo."
+                    )
+                }
             }
         } catch (error) {
             showError(
                 "Error al realizar llamada",
-                "Ocurrió un error al intentar realizar la llamada."
+                "Ocurrió un error al intentar realizar la llamada. Verifica que tengas una aplicación de teléfono instalada."
             )
         }
     }

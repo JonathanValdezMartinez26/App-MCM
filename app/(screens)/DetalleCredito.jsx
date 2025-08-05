@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react"
-import { View, Text, Pressable, ScrollView } from "react-native"
+import { View, Text, Pressable, ScrollView, Alert, Modal, Image, Animated } from "react-native"
+import { PanGestureHandler, State } from "react-native-gesture-handler"
 import { useLocalSearchParams, router, useFocusEffect } from "expo-router"
 import { Feather, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
 import { creditos, pagosPendientes } from "../../services"
@@ -29,11 +30,46 @@ export default function DetalleCredito() {
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
     const [pagosPendientesCredito, setPagosPendientesCredito] = useState([])
+    const [modalComprobanteVisible, setModalComprobanteVisible] = useState(false)
+    const [comprobanteSeleccionado, setComprobanteSeleccionado] = useState(null)
     const maxMov = 10
     const insets = useContext(SafeAreaInsetsContext)
 
     const volverAClientes = () => {
         router.back()
+    }
+
+    const verComprobante = (pago) => {
+        if (pago.fotoComprobante) {
+            setComprobanteSeleccionado(pago.fotoComprobante)
+            setModalComprobanteVisible(true)
+        } else {
+            Alert.alert("Sin comprobante", "Este pago no tiene una foto del comprobante asociada.")
+        }
+    }
+
+    const eliminarPago = async (pagoId) => {
+        Alert.alert("Eliminar Pago", "¿Está seguro de que desea eliminar este pago pendiente?", [
+            {
+                text: "Cancelar",
+                style: "cancel"
+            },
+            {
+                text: "Eliminar",
+                style: "destructive",
+                onPress: async () => {
+                    try {
+                        await pagosPendientes.eliminar(pagoId)
+                        // Recargar pagos pendientes
+                        const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                        setPagosPendientesCredito(pagosPendientes_)
+                    } catch (error) {
+                        console.error("Error al eliminar pago:", error)
+                        Alert.alert("Error", "No se pudo eliminar el pago. Inténtelo de nuevo.")
+                    }
+                }
+            }
+        ])
     }
 
     useEffect(() => {
@@ -85,8 +121,8 @@ export default function DetalleCredito() {
 
         const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
         const saldoTotal = numeral(creditoInfo.saldo_total).value()
-        const progreso =
-            saldoTotal > 0 ? totalPagadoConPendientes / (totalPagadoConPendientes + saldoTotal) : 0
+        const progreso = creditoInfo.progreso_porcentaje / 100
+        const progreso_color = getColorProgreso(progreso)
 
         return {
             totalPagado,
@@ -95,12 +131,217 @@ export default function DetalleCredito() {
             pagoPromedio,
             saldoTotal,
             progreso,
+            progreso_color,
             pagosSemana: numeral(creditoInfo.pago_semanal).value(),
             totalMovimientos: movimientos.length
         }
     }
 
+    const getColorProgreso = (progreso) => {
+        if (progreso >= 1) return "#16a34a"
+        if (progreso >= 0.75) return "#f59e0b"
+        return "#ef4444"
+    }
+
     const resumen = resumenDetalle()
+
+    // Componente para transacción pendiente con swipe
+    const TransaccionPendiente = ({ pago, index }) => {
+        const [translateX] = useState(new Animated.Value(0))
+        const [showActions, setShowActions] = useState(false)
+
+        const onGestureEvent = Animated.event([{ nativeEvent: { translationX: translateX } }], {
+            useNativeDriver: false
+        })
+
+        const onHandlerStateChange = (event) => {
+            if (event.nativeEvent.state === State.END) {
+                const { translationX } = event.nativeEvent
+
+                if (translationX > 80) {
+                    // Mantener abierto
+                    setShowActions(true)
+                    Animated.spring(translateX, {
+                        toValue: 145,
+                        useNativeDriver: false
+                    }).start()
+                } else {
+                    // Cerrar
+                    setShowActions(false)
+                    Animated.spring(translateX, {
+                        toValue: 0,
+                        useNativeDriver: false
+                    }).start()
+                }
+            }
+        }
+
+        const closeActions = () => {
+            setShowActions(false)
+            Animated.spring(translateX, {
+                toValue: 0,
+                useNativeDriver: false
+            }).start()
+        }
+
+        return (
+            <View className="mb-4" style={{ overflow: "hidden", borderRadius: 16 }}>
+                {/* Botones de acción detrás */}
+                <View
+                    style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 160,
+                        flexDirection: "row",
+                        backgroundColor: "transparent"
+                    }}
+                >
+                    <Pressable
+                        onPress={() => {
+                            closeActions()
+                            verComprobante(pago)
+                        }}
+                        style={{
+                            backgroundColor: "#3b82f6",
+                            width: 80,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}
+                    >
+                        <MaterialIcons name="visibility" size={24} color="white" />
+                        <Text style={{ color: "white", fontSize: 12, marginTop: 4 }}>
+                            Comprobante
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => {
+                            closeActions()
+                            eliminarPago(pago.id)
+                        }}
+                        style={{
+                            backgroundColor: "#ef4444",
+                            width: 80,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}
+                    >
+                        <MaterialIcons name="delete" size={24} color="white" />
+                        <Text style={{ color: "white", fontSize: 12, marginTop: 4 }}>Eliminar</Text>
+                    </Pressable>
+                </View>
+
+                {/* Contenido principal deslizable */}
+                <PanGestureHandler
+                    onGestureEvent={onGestureEvent}
+                    onHandlerStateChange={onHandlerStateChange}
+                    minDeltaX={10}
+                >
+                    <Animated.View
+                        style={{
+                            transform: [
+                                {
+                                    translateX: translateX.interpolate({
+                                        inputRange: [0, 160],
+                                        outputRange: [0, 160],
+                                        extrapolate: "clamp"
+                                    })
+                                }
+                            ],
+                            backgroundColor: "#fefce8",
+                            borderWidth: 1,
+                            borderColor: "#fde047",
+                            borderRadius: 16,
+                            padding: 16,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 4,
+                            elevation: 3
+                        }}
+                    >
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                            }}
+                        >
+                            <View style={{ flexDirection: "row", flex: 1 }}>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        marginBottom: 8
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            backgroundColor: "#fef3c7",
+                                            padding: 8,
+                                            borderRadius: 20,
+                                            marginRight: 12
+                                        }}
+                                    >
+                                        <MaterialIcons name="schedule" size={16} color="#f59e0b" />
+                                    </View>
+                                </View>
+
+                                <View style={{ alignItems: "flex-start" }}>
+                                    <Text
+                                        style={{
+                                            fontSize: 14,
+                                            fontWeight: "500",
+                                            color: "#1f2937"
+                                        }}
+                                    >
+                                        Pago {new Date(pago.fechaCaptura).toLocaleDateString()}
+                                    </Text>
+                                    <Text style={{ fontSize: 12, color: "#6b7280" }}>
+                                        {new Date(pago.fechaCaptura).toLocaleTimeString()}
+                                    </Text>
+                                    <View
+                                        style={{
+                                            backgroundColor: "#fef3c7",
+                                            paddingHorizontal: 8,
+                                            paddingVertical: 4,
+                                            borderRadius: 6,
+                                            marginTop: 4
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                fontSize: 12,
+                                                fontWeight: "500",
+                                                color: "#92400e"
+                                            }}
+                                        >
+                                            {pago.tipoPago === "pago" ? "Pago Regular" : "Multa"}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={{ alignItems: "flex-end" }}>
+                                <Text
+                                    style={{ fontSize: 18, fontWeight: "bold", color: "#d97706" }}
+                                >
+                                    {numeral(pago.monto).format("$0,0.00")}
+                                </Text>
+                                <Text style={{ fontSize: 12, color: "#d97706" }}>
+                                    Pendiente de entrega
+                                </Text>
+                                <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+                                    👉 Deslizar para opciones
+                                </Text>
+                            </View>
+                        </View>
+                    </Animated.View>
+                </PanGestureHandler>
+            </View>
+        )
+    }
 
     if (loading) {
         return (
@@ -324,10 +565,17 @@ export default function DetalleCredito() {
                                         className="h-full rounded-full"
                                         style={{
                                             width: `${Math.min(resumen.progreso * 100, 100)}%`,
-                                            backgroundColor:
-                                                resumen.progreso >= 1 ? "#16a34a" : COLORS.primary
+                                            backgroundColor: `hsl(${Math.min(
+                                                resumen.progreso * 120,
+                                                120
+                                            )}, 100%, 50%)`
                                         }}
                                     />
+                                </View>
+                                <View className="justify-center items-center mt-3">
+                                    <Text className="text-sm font-medium text-gray-500">
+                                        {detalle.detalle_credito.mensaje_motivador}
+                                    </Text>
                                 </View>
                             </View>
                         </View>
@@ -355,54 +603,11 @@ export default function DetalleCredito() {
                                 <View className="space-y-3">
                                     {/* Mostrar pagos pendientes primero */}
                                     {pagosPendientesCredito.map((pago, index) => (
-                                        <View
+                                        <TransaccionPendiente
                                             key={`pendiente-${index}`}
-                                            className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-4 shadow-md"
-                                        >
-                                            <View className="flex-row justify-between items-center">
-                                                <View className="flex-row flex-1">
-                                                    <View className="flex-row items-center mb-2">
-                                                        <View className="bg-yellow-100 p-2 rounded-full mr-3">
-                                                            <MaterialIcons
-                                                                name="schedule"
-                                                                size={16}
-                                                                color="#f59e0b"
-                                                            />
-                                                        </View>
-                                                    </View>
-
-                                                    <View className="items-start">
-                                                        <Text className="text-sm font-medium text-gray-800">
-                                                            Pago{" "}
-                                                            {new Date(
-                                                                pago.fechaCaptura
-                                                            ).toLocaleDateString()}
-                                                        </Text>
-                                                        <Text className="text-xs text-gray-500">
-                                                            {new Date(
-                                                                pago.fechaCaptura
-                                                            ).toLocaleTimeString()}
-                                                        </Text>
-                                                        <View className="bg-yellow-100 px-2 py-1 rounded-md mr-2">
-                                                            <Text className="text-xs font-medium text-yellow-700">
-                                                                {pago.tipoPago === "pago"
-                                                                    ? "Pago Regular"
-                                                                    : "Multa"}
-                                                            </Text>
-                                                        </View>
-                                                    </View>
-                                                </View>
-
-                                                <View className="items-end">
-                                                    <Text className="text-lg font-bold text-yellow-600">
-                                                        {numeral(pago.monto).format("$0,0.00")}
-                                                    </Text>
-                                                    <Text className="text-xs text-yellow-600">
-                                                        Pendiente de entrega
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                        </View>
+                                            pago={pago}
+                                            index={index}
+                                        />
                                     ))}
 
                                     {/* Mostrar movimientos procesados */}
@@ -511,6 +716,51 @@ export default function DetalleCredito() {
                     </View>
                 </ScrollView>
             </View>
+
+            {/* Modal para mostrar comprobante */}
+            <Modal
+                visible={modalComprobanteVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalComprobanteVisible(false)}
+            >
+                <View className="flex-1 bg-black bg-opacity-80 justify-center items-center">
+                    <View className="bg-white rounded-2xl p-4 m-4 max-w-sm w-full">
+                        <View className="flex-row justify-between items-center mb-4">
+                            <Text className="text-lg font-semibold text-gray-800">
+                                Comprobante de Pago
+                            </Text>
+                            <Pressable
+                                onPress={() => setModalComprobanteVisible(false)}
+                                className="p-2"
+                            >
+                                <MaterialIcons name="close" size={24} color="#6B7280" />
+                            </Pressable>
+                        </View>
+
+                        {comprobanteSeleccionado ? (
+                            <View>
+                                <Image
+                                    source={{ uri: comprobanteSeleccionado }}
+                                    className="w-full h-80 rounded-xl"
+                                    resizeMode="contain"
+                                />
+                            </View>
+                        ) : (
+                            <View className="items-center py-8">
+                                <MaterialIcons
+                                    name="image-not-supported"
+                                    size={64}
+                                    color="#9CA3AF"
+                                />
+                                <Text className="text-gray-500 mt-4">
+                                    No se pudo cargar el comprobante
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </View>
     )
 }

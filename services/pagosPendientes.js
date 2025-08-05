@@ -8,10 +8,12 @@ const PAGOS_PENDIENTES_KEY = "pagos_pendientes"
 //     credito: string,
 //     ciclo: string,
 //     monto: number,
-//     tipoPago: string,
+//     tipoPago: string (código del tipo de pago),
+//     tipoEtiqueta: string (descripción del tipo para mostrar),
 //     fechaCaptura: string (ISO date),
 //     nombreCliente: string,
-//     estado: 'pendiente'
+//     estado: 'pendiente',
+//     foto: string (opcional, URL de la imagen)
 // }
 
 export const pagosPendientes = {
@@ -48,9 +50,11 @@ export const pagosPendientes = {
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
                 tipoPago: pagoData.tipoPago,
+                tipoEtiqueta: pagoData.tipoEtiqueta || "Desconocido",
                 fechaCaptura: new Date().toISOString(),
                 nombreCliente: pagoData.nombreCliente || "",
-                estado: "pendiente"
+                estado: "pendiente",
+                fotoComprobante: pagoData.fotoComprobante || null
             }
 
             const pagosActualizados = [...pagosExistentes, nuevoPago]
