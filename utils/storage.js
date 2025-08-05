@@ -38,6 +38,15 @@ export async function getIntroStatus() {
     return completed === "true"
 }
 
+export async function setItem(key, value) {
+    await AsyncStorage.setItem(key, JSON.stringify(value))
+}
+
+export async function getItem(key) {
+    const item = await AsyncStorage.getItem(key)
+    return item ? JSON.parse(item) : null
+}
+
 export default {
     saveToken,
     getToken,
@@ -47,5 +56,7 @@ export default {
     removeUser,
     clearAll,
     setIntroOK,
-    getIntroStatus
+    getIntroStatus,
+    setItem,
+    getItem
 }

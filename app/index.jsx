@@ -8,6 +8,7 @@ import { useSession } from "../context/SessionContext"
 import { COLORS } from "../constants"
 import Login from "../components/Login"
 import IntroSlides from "../components/IntroSlides"
+import { sesion } from "../services"
 
 export default function index() {
     const insets = useContext(SafeAreaInsetsContext)
@@ -16,6 +17,7 @@ export default function index() {
     useEffect(() => {
         // Si ya terminó de cargar y hay token, redirigir a Cartera
         if (!isLoading && token) {
+            sesion.inicializarSesion()
             router.replace("/(tabs)/Cartera")
         }
     }, [isLoading, token])

@@ -46,7 +46,7 @@ export default {
     },
 
     // Obtener tipos de pago desde la API
-    getTiposPago: async () => {
+    getTiposPago: async function () {
         const token = await storage.getToken()
 
         try {
@@ -99,7 +99,7 @@ export default {
     },
 
     // Inicializar catálogos (llamar en login o al abrir la app)
-    inicializarCatalogos: async () => {
+    inicializarCatalogos: async function () {
         try {
             console.log("Inicializando catálogos...")
 

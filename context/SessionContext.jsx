@@ -24,7 +24,6 @@ export const SessionProvider = ({ children }) => {
                 const storedToken = await storage.getToken()
                 if (storedToken) {
                     setToken(storedToken)
-
                     const storedUser = await storage.getUser()
                     if (storedUser) setUsuario(storedUser)
                 }
