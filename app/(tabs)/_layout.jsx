@@ -18,7 +18,7 @@ export default function TabLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarHideOnKeyboard: Platform.OS !== "ios",
+                // tabBarHideOnKeyboard: Platform.OS !== "ios",
                 tabBarStyle: {
                     position: "absolute",
                     bottom: 0,

@@ -98,10 +98,9 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                 <View className="items-end">
                     <Text className="text-sm text-gray-500">Saldo</Text>
                     <Text className="font-semibold text-base">
-                        $
-                        {parseFloat(cliente.saldo_total || 0).toLocaleString("es-MX", {
-                            minimumFractionDigits: 2
-                        })}
+                        {isNaN(parseFloat(cliente.saldo_total))
+                            ? cliente.saldo_total
+                            : numeral(cliente.saldo_total).format("$0,0.00")}
                     </Text>
                     <Animated.View
                         style={{

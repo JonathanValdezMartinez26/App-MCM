@@ -26,7 +26,6 @@ export default function Cartera() {
     const [terminoBusqueda, setTerminoBusqueda] = useState("")
     const [clientesFiltrados, setClientesFiltrados] = useState([])
 
-    // Efecto para filtrar clientes cuando cambia el término de búsqueda
     useEffect(() => {
         if (terminoBusqueda.length >= 3) {
             const filtrados = clientes.filter((cliente) => {
@@ -44,13 +43,12 @@ export default function Cartera() {
         }
     }, [terminoBusqueda, clientes])
 
-    // Inicializar clientes filtrados
     useEffect(() => {
         setClientesFiltrados(clientes)
     }, [clientes])
 
     const actualizarClientes = async () => {
-        await obtenerCartera(true) // Forzar actualización
+        await obtenerCartera(true)
     }
 
     const handleToggleExpansion = (clienteId) => {

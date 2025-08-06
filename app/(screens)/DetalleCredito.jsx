@@ -60,7 +60,6 @@ export default function DetalleCredito() {
                 onPress: async () => {
                     try {
                         await pagosPendientes.eliminar(pagoId)
-                        // Recargar pagos pendientes
                         const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
                         setPagosPendientesCredito(pagosPendientes_)
                     } catch (error) {
@@ -84,7 +83,6 @@ export default function DetalleCredito() {
                     console.error("Error al obtener detalle del crédito:", response.error)
                 }
 
-                // Obtener pagos pendientes para este crédito
                 const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
                 setPagosPendientesCredito(pagosPendientes_)
             } catch (error) {
@@ -97,7 +95,6 @@ export default function DetalleCredito() {
         getDetalle()
     }, [noCredito])
 
-    // Refrescar pagos pendientes cuando la pantalla recibe el foco
     useFocusEffect(
         useCallback(() => {
             const cargarPagosPendientes = async () => {
@@ -113,12 +110,8 @@ export default function DetalleCredito() {
 
         const creditoInfo = detalle.detalle_credito || {}
         const movimientos = detalle.movimientos || []
-
-        // Incluir pagos pendientes en el cálculo del total pagado
-        const totalPagado = movimientos.reduce((sum, m) => sum + numeral(m?.monto).value(), 0)
+        const totalPagado = detalle.detalle_credito.total_pd
         const totalPendiente = pagosPendientesCredito.reduce((sum, p) => sum + p.monto, 0)
-        const totalPagadoConPendientes = totalPagado + totalPendiente
-
         const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
         const saldoTotal = numeral(creditoInfo.saldo_total).value()
         const progreso = creditoInfo.progreso_porcentaje / 100
@@ -127,7 +120,6 @@ export default function DetalleCredito() {
         return {
             totalPagado,
             totalPendiente,
-            totalPagadoConPendientes,
             pagoPromedio,
             saldoTotal,
             progreso,
@@ -145,10 +137,8 @@ export default function DetalleCredito() {
 
     const resumen = resumenDetalle()
 
-    // Componente para transacción pendiente con swipe
     const TransaccionPendiente = ({ pago, index }) => {
         const [translateX] = useState(new Animated.Value(0))
-        const [showActions, setShowActions] = useState(false)
 
         const onGestureEvent = Animated.event([{ nativeEvent: { translationX: translateX } }], {
             useNativeDriver: false
@@ -158,26 +148,18 @@ export default function DetalleCredito() {
             if (event.nativeEvent.state === State.END) {
                 const { translationX } = event.nativeEvent
 
-                if (translationX > 80) {
-                    // Mantener abierto
-                    setShowActions(true)
+                if (translationX > 70) {
                     Animated.spring(translateX, {
-                        toValue: 145,
+                        toValue: 80,
                         useNativeDriver: false
                     }).start()
                 } else {
-                    // Cerrar
-                    setShowActions(false)
-                    Animated.spring(translateX, {
-                        toValue: 0,
-                        useNativeDriver: false
-                    }).start()
+                    closeActions()
                 }
             }
         }
 
         const closeActions = () => {
-            setShowActions(false)
             Animated.spring(translateX, {
                 toValue: 0,
                 useNativeDriver: false
@@ -186,7 +168,6 @@ export default function DetalleCredito() {
 
         return (
             <View className="mb-4" style={{ overflow: "hidden", borderRadius: 16 }}>
-                {/* Botones de acción detrás */}
                 <View
                     style={{
                         position: "absolute",
@@ -215,7 +196,7 @@ export default function DetalleCredito() {
                             Comprobante
                         </Text>
                     </Pressable>
-                    <Pressable
+                    {/* <Pressable
                         onPress={() => {
                             closeActions()
                             eliminarPago(pago.id)
@@ -229,7 +210,7 @@ export default function DetalleCredito() {
                     >
                         <MaterialIcons name="delete" size={24} color="white" />
                         <Text style={{ color: "white", fontSize: 12, marginTop: 4 }}>Eliminar</Text>
-                    </Pressable>
+                    </Pressable> */}
                 </View>
 
                 {/* Contenido principal deslizable */}
@@ -243,8 +224,8 @@ export default function DetalleCredito() {
                             transform: [
                                 {
                                     translateX: translateX.interpolate({
-                                        inputRange: [0, 160],
-                                        outputRange: [0, 160],
+                                        inputRange: [0, 80],
+                                        outputRange: [0, 80],
                                         extrapolate: "clamp"
                                     })
                                 }
@@ -296,10 +277,19 @@ export default function DetalleCredito() {
                                             color: "#1f2937"
                                         }}
                                     >
-                                        Pago {new Date(pago.fechaCaptura).toLocaleDateString()}
+                                        Pago{" "}
+                                        {new Date(pago.fechaCaptura).toLocaleDateString("es-MX", {
+                                            year: "numeric",
+                                            month: "2-digit",
+                                            day: "2-digit"
+                                        })}
                                     </Text>
                                     <Text style={{ fontSize: 12, color: "#6b7280" }}>
-                                        {new Date(pago.fechaCaptura).toLocaleTimeString()}
+                                        {new Date(pago.fechaCaptura).toLocaleTimeString("es-MX", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit"
+                                        })}
                                     </Text>
                                     <View
                                         style={{
@@ -329,9 +319,7 @@ export default function DetalleCredito() {
                                 >
                                     {numeral(pago.monto).format("$0,0.00")}
                                 </Text>
-                                <Text style={{ fontSize: 12, color: "#d97706" }}>
-                                    Pendiente de entrega
-                                </Text>
+                                <Text style={{ fontSize: 12, color: "#d97706" }}>En Transito</Text>
                                 <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
                                     👉 Deslizar para opciones
                                 </Text>
@@ -362,17 +350,13 @@ export default function DetalleCredito() {
                 backgroundColor: COLORS.primary
             }}
         >
-            {/* Header */}
             <View className="flex-row items-center p-4">
                 <Pressable onPress={volverAClientes} className="mr-4">
                     <Feather name="arrow-left" size={24} color="white" />
                 </Pressable>
                 <Text className="flex-1 text-white text-lg font-semibold">Detalle del Crédito</Text>
             </View>
-
-            {/* Content Container */}
             <View className="bg-white flex-1 rounded-t-3xl">
-                {/* Header Info - Información del cliente y crédito */}
                 <View className="p-6 border-b border-gray-200">
                     <View className="flex-row justify-between items-start mb-4">
                         <View className="flex-1">
@@ -382,8 +366,6 @@ export default function DetalleCredito() {
                             <Text className="text-base text-gray-600 mb-2">
                                 Crédito {noCredito} • Ciclo {ciclo}
                             </Text>
-
-                            {/* Status del crédito */}
                             <View className="flex-row items-center mb-2">
                                 <View
                                     className={`px-3 py-1 rounded-full mr-3 ${
@@ -416,8 +398,6 @@ export default function DetalleCredito() {
                                 )}
                             </View>
                         </View>
-
-                        {/* Icono para ir a registro de pago */}
                         {resumen && resumen.progreso < 1 && (
                             <Pressable
                                 onPress={() => {
@@ -427,21 +407,15 @@ export default function DetalleCredito() {
                                         pagoSemanalDetalle: resumen.pagosSemana,
                                         timestamp: Date.now().toString()
                                     })
-
                                     router.push(`/(tabs)/Pago?${params}`)
                                 }}
                                 className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
                             >
-                                <MaterialCommunityIcons
-                                    name="cash-register"
-                                    size={28}
-                                    color="white"
-                                />
+                                <MaterialCommunityIcons name="plus" size={24} color="white" />
                             </Pressable>
                         )}
                     </View>
 
-                    {/* Información financiera rápida */}
                     <View className="bg-gray-50 rounded-xl p-4">
                         <View className="flex-row justify-between items-center">
                             <View className="items-center flex-1">
@@ -450,7 +424,6 @@ export default function DetalleCredito() {
                                     {numeral(saldoTotal || 0).format("$0,0.00")}
                                 </Text>
                             </View>
-
                             {moraTotal && parseFloat(moraTotal) > 0 && (
                                 <View className="items-center flex-1">
                                     <Text className="text-xs text-gray-600 mb-1">Mora Total</Text>
@@ -459,7 +432,6 @@ export default function DetalleCredito() {
                                     </Text>
                                 </View>
                             )}
-
                             <View className="items-center flex-1">
                                 <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
                                 <Text className="text-sm font-medium text-gray-700">{diaPago}</Text>
@@ -467,17 +439,12 @@ export default function DetalleCredito() {
                         </View>
                     </View>
                 </View>
-
-                {/* Contenido con scroll */}
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    {/* Progreso del Crédito */}
                     {resumen && (
                         <View className="p-6">
                             <Text className="text-lg font-semibold text-gray-800 mb-4">
                                 Análisis del Crédito
                             </Text>
-
-                            {/* Cards de estadísticas mejoradas */}
                             <View className="flex-row flex-wrap justify-between mb-4">
                                 <View className="w-[48%] bg-blue-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
@@ -494,28 +461,20 @@ export default function DetalleCredito() {
                                         {numeral(cantEntregada).format("$0,0.00")}
                                     </Text>
                                 </View>
-
                                 <View className="w-[48%] bg-green-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
                                         <MaterialIcons name="payments" size={20} color="#16a34a" />
                                         <Text className="text-sm font-medium text-green-700 ml-2">
                                             Total Pagado
                                         </Text>
+                                        <View className="ml-auto">
+                                            <MaterialIcons name="info" size={20} color="#4fa2b0" />
+                                        </View>
                                     </View>
                                     <Text className="text-xl font-bold text-green-800">
-                                        {numeral(resumen.totalPagadoConPendientes).format(
-                                            "$0,0.00"
-                                        )}
+                                        {numeral(resumen.totalPagado).format("$0,0.00")}
                                     </Text>
-                                    {resumen.totalPendiente > 0 && (
-                                        <Text className="text-xs text-green-600 mt-1">
-                                            Incluye{" "}
-                                            {numeral(resumen.totalPendiente).format("$0,0.00")}{" "}
-                                            pendiente
-                                        </Text>
-                                    )}
                                 </View>
-
                                 <View className="w-[48%] bg-orange-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
                                         <FontAwesome5
@@ -531,7 +490,6 @@ export default function DetalleCredito() {
                                         {numeral(resumen.pagosSemana).format("$0,0.00")}
                                     </Text>
                                 </View>
-
                                 <View className="w-[48%] bg-purple-50 p-4 rounded-xl mb-3">
                                     <View className="flex-row items-center mb-2">
                                         <MaterialIcons
@@ -548,18 +506,15 @@ export default function DetalleCredito() {
                                     </Text>
                                 </View>
                             </View>
-
-                            {/* Barra de progreso mejorada */}
                             <View className="bg-gray-50 rounded-2xl p-4">
                                 <View className="flex-row justify-between items-center mb-3">
                                     <Text className="text-sm font-medium text-gray-700">
-                                        Progreso de Pago
+                                        Progreso del Crédito
                                     </Text>
                                     <Text className="text-lg font-bold text-blue-600">
                                         {numeral(resumen.progreso).format("0.0%")}
                                     </Text>
                                 </View>
-
                                 <View className="bg-gray-200 h-3 rounded-full overflow-hidden">
                                     <View
                                         className="h-full rounded-full"
@@ -580,8 +535,6 @@ export default function DetalleCredito() {
                             </View>
                         </View>
                     )}
-
-                    {/* Historial de Movimientos */}
                     <View className="p-6 border-t border-gray-200">
                         {(detalle?.movimientos && detalle.movimientos.length > 0) ||
                         pagosPendientesCredito.length > 0 ? (
@@ -598,10 +551,7 @@ export default function DetalleCredito() {
                                         </Text>
                                     </View>
                                 </View>
-
-                                {/* Lista de movimientos con mejor diseño */}
                                 <View className="space-y-3">
-                                    {/* Mostrar pagos pendientes primero */}
                                     {pagosPendientesCredito.map((pago, index) => (
                                         <TransaccionPendiente
                                             key={`pendiente-${index}`}
@@ -609,8 +559,6 @@ export default function DetalleCredito() {
                                             index={index}
                                         />
                                     ))}
-
-                                    {/* Mostrar movimientos procesados */}
                                     {detalle.movimientos
                                         ?.slice(0, maxMovimientos)
                                         .map((mov, index) => (
@@ -629,7 +577,6 @@ export default function DetalleCredito() {
                                                                 />
                                                             </View>
                                                         </View>
-
                                                         <View className="items-start">
                                                             <Text className="text-sm font-medium text-gray-800">
                                                                 Pago {mov.fecha_valor}
@@ -644,21 +591,18 @@ export default function DetalleCredito() {
                                                             </View>
                                                         </View>
                                                     </View>
-
                                                     <View className="items-end">
                                                         <Text className="text-lg font-bold text-green-600">
                                                             {numeral(mov?.monto).format("$0,0.00")}
                                                         </Text>
                                                         <Text className="text-xs">
-                                                            Procesado en caja
+                                                            {mov.estatus_caja}
                                                         </Text>
                                                     </View>
                                                 </View>
                                             </View>
                                         ))}
                                 </View>
-
-                                {/* Mostrar más movimientos si los hay */}
                                 {detalle.movimientos &&
                                     detalle.movimientos.length > maxMovimientos && (
                                         <Pressable
@@ -681,7 +625,6 @@ export default function DetalleCredito() {
                                     )}
                             </>
                         ) : (
-                            /* Estado vacío mejorado */
                             <View className="bg-gray-50 rounded-xl p-8 items-center">
                                 <View className="bg-gray-200 p-4 rounded-full mb-4">
                                     <MaterialIcons name="inbox" size={32} color="#9CA3AF" />
@@ -716,8 +659,6 @@ export default function DetalleCredito() {
                     </View>
                 </ScrollView>
             </View>
-
-            {/* Modal para mostrar comprobante */}
             <Modal
                 visible={modalComprobanteVisible}
                 transparent={true}
@@ -737,7 +678,6 @@ export default function DetalleCredito() {
                                 <MaterialIcons name="close" size={24} color="#6B7280" />
                             </Pressable>
                         </View>
-
                         {comprobanteSeleccionado ? (
                             <View>
                                 <Image

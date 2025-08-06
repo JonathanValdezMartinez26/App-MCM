@@ -1,5 +1,14 @@
 import { useContext, useState, useEffect } from "react"
-import { View, Text, TextInput, Pressable, ScrollView, Animated, Image } from "react-native"
+import {
+    View,
+    Text,
+    TextInput,
+    Pressable,
+    ScrollView,
+    Animated,
+    Image,
+    Platform
+} from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { COLORS } from "../../constants"
@@ -316,18 +325,14 @@ export default function Pago() {
             className="flex-1"
             style={{
                 paddingTop: insets.top,
-                paddingBottom: insets.bottom,
+                paddingBottom: Platform.OS === "ios" ? 90 : 60,
                 backgroundColor: COLORS.primary
             }}
         >
-            {/* Header */}
             <View className="flex-row items-center p-4">
                 <Text className="flex-1 text-white text-lg font-semibold">Registro de Pago</Text>
             </View>
-
-            {/* Content */}
             <View className="bg-white flex-1 rounded-t-3xl">
-                {/* Header de información mejorado */}
                 <View className="px-6 py-5 border-b border-gray-200">
                     <View className="flex-row items-center">
                         <View className="bg-green-100 p-3 rounded-full mr-4">
@@ -343,13 +348,11 @@ export default function Pago() {
                         </View>
                     </View>
                 </View>
-                {/* Formulario moderno */}
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                     <Animated.View
                         className="p-6"
                         style={{ transform: [{ translateX: shakeAnim }] }}
                     >
-                        {/* Información del crédito */}
                         <View className="mb-6">
                             <View className="flex-row">
                                 <View className="flex-1 mr-3">
@@ -391,7 +394,6 @@ export default function Pago() {
                                         </View>
                                     </View>
                                 </View>
-
                                 <View className="w-24">
                                     <Text className="text-sm font-medium text-gray-700 mb-2">
                                         Ciclo
@@ -416,8 +418,6 @@ export default function Pago() {
                                     </View>
                                 </View>
                             </View>
-
-                            {/* Mostrar información del cliente si el crédito es válido */}
                             {creditoValido && infoCredito && (
                                 <View className="mt-2 p-3 bg-green-50 rounded-xl border border-green-200">
                                     <Text className="text-sm font-medium text-green-800">
@@ -426,13 +426,10 @@ export default function Pago() {
                                 </View>
                             )}
                         </View>
-
-                        {/* Selector de tipo de pago como dropdown */}
                         <View className="mb-6">
                             <Text className="text-sm font-medium text-gray-700 mb-2">
                                 Tipo de Movimiento
                             </Text>
-
                             <Pressable
                                 onPress={() => setShowTipoSelect(!showTipoSelect)}
                                 className={`border-2 rounded-2xl p-4 flex-row justify-between items-center ${
@@ -469,8 +466,6 @@ export default function Pago() {
                                     color="#6B7280"
                                 />
                             </Pressable>
-
-                            {/* Dropdown de opciones */}
                             {showTipoSelect && (
                                 <View className="mt-2 border-2 border-gray-200 rounded-2xl bg-white shadow-sm">
                                     {tiposPago.map((tipo, index) => (
@@ -502,13 +497,11 @@ export default function Pago() {
                                 </View>
                             )}
                         </View>
-
                         <View className="mb-6 flex-row">
                             <View className="flex-1 mr-3">
                                 <Text className="text-sm font-medium text-gray-700 mb-2">
                                     Monto del Pago
                                 </Text>
-
                                 <View
                                     className={`border-2 rounded-2xl p-6 ${
                                         focusedField === "monto"
@@ -535,40 +528,35 @@ export default function Pago() {
                                     </View>
                                 </View>
                             </View>
-
-                            <View className="flex-row justify-center items-end">
-                                <View className="items-center">
-                                    <Text className="text-sm font-medium text-gray-700 mb-2">
-                                        Comprobante
-                                    </Text>
-                                    <Pressable
-                                        onPress={capturarFoto}
-                                        className={`rounded-2xl w-24 h-[95] justify-center items-center ${
-                                            fotoComprobante ? "bg-green-500" : "bg-blue-500"
-                                        }`}
-                                    >
-                                        {fotoComprobante ? (
-                                            <View className="items-center">
-                                                <MaterialIcons
-                                                    name="check-circle"
-                                                    size={30}
-                                                    color="white"
-                                                />
-                                                <Text className="text-white text-xs mt-1 text-center">
-                                                    Capturado
-                                                </Text>
-                                            </View>
-                                        ) : (
-                                            <View className="items-center">
-                                                <Feather name="camera" size={30} color="white" />
-                                            </View>
-                                        )}
-                                    </Pressable>
-                                </View>
+                            <View>
+                                <Text className="text-sm font-medium text-gray-700 mb-2">
+                                    Comprobante
+                                </Text>
+                                <Pressable
+                                    onPress={capturarFoto}
+                                    className={`flex-1 rounded-2xl w-24 justify-center items-center ${
+                                        fotoComprobante ? "bg-green-500" : "bg-blue-500"
+                                    }`}
+                                >
+                                    {fotoComprobante ? (
+                                        <View className="items-center">
+                                            <MaterialIcons
+                                                name="check-circle"
+                                                size={30}
+                                                color="white"
+                                            />
+                                            <Text className="text-white text-xs mt-1 text-center">
+                                                Capturado
+                                            </Text>
+                                        </View>
+                                    ) : (
+                                        <View className="items-center">
+                                            <Feather name="camera" size={30} color="white" />
+                                        </View>
+                                    )}
+                                </Pressable>
                             </View>
                         </View>
-
-                        {/* Vista previa de la foto del comprobante */}
                         {fotoComprobante && (
                             <View>
                                 <Text className="text-sm font-medium text-gray-700 mb-2">
@@ -603,13 +591,7 @@ export default function Pago() {
                         )}
                     </Animated.View>
                 </ScrollView>
-
-                {/* Botones de acción modernos */}
-                <View
-                    className={`flex-row px-6 pb-8 pt-2 border-t border-gray-200 ${
-                        vieneDeDetalle ? "justify-between" : "justify-between"
-                    }`}
-                >
+                <View className="flex-row px-6 pt-2 border-t border-gray-200 justify-between">
                     {vieneDeDetalle ? (
                         <View className="mb-4">
                             <Pressable
@@ -663,7 +645,6 @@ export default function Pago() {
                     </Animated.View>
                 </View>
             </View>
-
             <CustomAlert ref={alertRef} />
         </View>
     )
