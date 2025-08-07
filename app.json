@@ -14,14 +14,19 @@
             "backgroundColor": "#a93439"
         },
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "infoPlist": {
+                "NSCameraUsageDescription": "Esta aplicación necesita acceso a la cámara para capturar fotos de comprobantes de pago.",
+                "NSLocationWhenInUseUsageDescription": "Esta aplicación necesita acceso a la ubicación para registrar la posición donde se realizan los pagos."
+            }
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/logos/icon.png",
                 "backgroundColor": "#fff"
             },
-            "package": "com.mcm_dev_01.MasConMenos"
+            "package": "com.mcm_dev_01.MasConMenos",
+            "permissions": ["CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
         },
         "web": {
             "bundler": "metro",

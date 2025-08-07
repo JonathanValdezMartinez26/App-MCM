@@ -13,7 +13,9 @@ const PAGOS_PENDIENTES_KEY = "pagos_pendientes"
 //     fechaCaptura: string (ISO date),
 //     nombreCliente: string,
 //     estado: 'pendiente',
-//     foto: string (opcional, URL de la imagen)
+//     foto: string (opcional, URL de la imagen),
+//     latitud: number (opcional, coordenada de latitud),
+//     longitud: number (opcional, coordenada de longitud)
 // }
 
 export const pagosPendientes = {
@@ -54,7 +56,9 @@ export const pagosPendientes = {
                 fechaCaptura: new Date().toISOString(),
                 nombreCliente: pagoData.nombreCliente || "",
                 estado: "pendiente",
-                fotoComprobante: pagoData.fotoComprobante || null
+                fotoComprobante: pagoData.fotoComprobante || null,
+                latitud: pagoData.latitud || null,
+                longitud: pagoData.longitud || null
             }
 
             const pagosActualizados = [...pagosExistentes, nuevoPago]

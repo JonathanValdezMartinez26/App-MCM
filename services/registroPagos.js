@@ -41,7 +41,9 @@ export const registroPagos = {
                 monto: parseFloat(pagoData.monto),
                 tipomov: pagoData.tipoPago,
                 foto: fotoBase64,
-                fecha_valor: fecha
+                fecha_valor: fecha,
+                latitud: pagoData.latitud || null,
+                longitud: pagoData.longitud || null
             }
 
             console.log("Enviando pago al servidor:", {

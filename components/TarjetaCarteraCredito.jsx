@@ -2,11 +2,14 @@ import { useState, useEffect } from "react"
 import { View, Text, Pressable, Animated } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import { router } from "expo-router"
+import { useDetalle } from "../context/DetalleContext"
 import numeral from "numeral"
 
 export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle }) {
     const [animatedHeight] = useState(new Animated.Value(isExpanded ? 1 : 0))
     const [contentHeight, setContentHeight] = useState(0)
+    const [translateX] = useState(new Animated.Value(0))
+    const { establecerDatosDetalle } = useDetalle()
 
     useEffect(() => {
         const toValue = isExpanded ? 1 : 0
@@ -34,7 +37,8 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
     }
 
     const handleNavigateToDetail = () => {
-        const params = new URLSearchParams({
+        // Usar contexto en lugar de parámetros
+        const datosCredito = {
             noCredito: cliente.cdgns,
             ciclo: cliente.ciclo,
             nombre: cliente.nombre || "",
@@ -46,9 +50,10 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
             diasMora: cliente.dias_mora?.toString() || "0",
             moraTotal: cliente.mora_total?.toString() || "0",
             fechaCalc: cliente.fecha_calc || ""
-        }).toString()
+        }
 
-        router.push(`/DetalleCredito?${params}`)
+        establecerDatosDetalle(datosCredito)
+        router.push("/(screens)/DetalleCredito")
     }
 
     return (

@@ -8,24 +8,15 @@ import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 import { useCallback } from "react"
+import { usePago } from "../../context/PagoContext"
+import { useDetalle } from "../../context/DetalleContext"
 
 numeral.zeroFormat(0)
 numeral.nullFormat(0)
 
 export default function DetalleCredito() {
-    const {
-        noCredito,
-        ciclo,
-        nombre,
-        diaPago,
-        saldoTotal,
-        cantEntregada,
-        tipoCartera,
-        fechaInicio,
-        diasMora,
-        moraTotal,
-        fechaCalc
-    } = useLocalSearchParams()
+    const { establecerDatosPago } = usePago()
+    const { datosDetalle, tieneContextoDetalle, limpiarDatosDetalle } = useDetalle()
     const [detalle, setDetalle] = useState(null)
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
@@ -36,7 +27,12 @@ export default function DetalleCredito() {
     const insets = useContext(SafeAreaInsetsContext)
 
     const volverAClientes = () => {
-        router.back()
+        limpiarDatosDetalle()
+        if (tieneContextoDetalle()) {
+            router.push("/(tabs)/Cartera")
+        } else {
+            router.back()
+        }
     }
 
     const verComprobante = (pago) => {
@@ -60,7 +56,9 @@ export default function DetalleCredito() {
                 onPress: async () => {
                     try {
                         await pagosPendientes.eliminar(pagoId)
-                        const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                        const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(
+                            datosDetalle?.noCredito
+                        )
                         setPagosPendientesCredito(pagosPendientes_)
                     } catch (error) {
                         console.error("Error al eliminar pago:", error)
@@ -75,7 +73,10 @@ export default function DetalleCredito() {
         const getDetalle = async () => {
             try {
                 setLoading(true)
-                const response = await creditos.getDetalleCredito(noCredito, ciclo)
+                const response = await creditos.getDetalleCredito(
+                    datosDetalle?.noCredito,
+                    datosDetalle?.ciclo
+                )
                 if (response.success) {
                     setDetalle(response.data)
                     setMaxMovimientos(Math.min(response.data.movimientos.length, maxMov))
@@ -83,7 +84,9 @@ export default function DetalleCredito() {
                     console.error("Error al obtener detalle del crédito:", response.error)
                 }
 
-                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(
+                    datosDetalle?.noCredito
+                )
                 setPagosPendientesCredito(pagosPendientes_)
             } catch (error) {
                 console.error("Error inesperado al obtener detalle del crédito:", error)
@@ -93,16 +96,18 @@ export default function DetalleCredito() {
         }
 
         getDetalle()
-    }, [noCredito])
+    }, [])
 
     useFocusEffect(
         useCallback(() => {
             const cargarPagosPendientes = async () => {
-                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(noCredito)
+                const pagosPendientes_ = await pagosPendientes.obtenerPorCredito(
+                    datosDetalle?.noCredito
+                )
                 setPagosPendientesCredito(pagosPendientes_)
             }
             cargarPagosPendientes()
-        }, [noCredito])
+        }, [])
     )
 
     const resumenDetalle = () => {
@@ -113,8 +118,8 @@ export default function DetalleCredito() {
         const totalPagado = detalle.detalle_credito.total_pd
         const totalPendiente = pagosPendientesCredito.reduce((sum, p) => sum + p.monto, 0)
         const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
-        const saldoTotal = numeral(creditoInfo.saldo_total).value()
-        const progreso = creditoInfo.progreso_porcentaje / 100
+        const saldoTotal = creditoInfo?.saldo_total
+        const progreso = creditoInfo?.progreso_porcentaje / 100
         const progreso_color = getColorProgreso(progreso)
 
         return {
@@ -307,7 +312,7 @@ export default function DetalleCredito() {
                                                 color: "#92400e"
                                             }}
                                         >
-                                            {pago.tipoPago === "pago" ? "Pago Regular" : "Multa"}
+                                            {pago.tipoEtiqueta}
                                         </Text>
                                     </View>
                                 </View>
@@ -361,38 +366,39 @@ export default function DetalleCredito() {
                     <View className="flex-row justify-between items-start mb-4">
                         <View className="flex-1">
                             <Text className="text-2xl font-bold text-gray-800 mb-1">
-                                {nombre || `Cliente ${noCredito}`}
+                                {datosDetalle?.nombre || `Cliente ${datosDetalle?.noCredito}`}
                             </Text>
                             <Text className="text-base text-gray-600 mb-2">
-                                Crédito {noCredito} • Ciclo {ciclo}
+                                Crédito {datosDetalle?.noCredito || "N/D"} • Ciclo{" "}
+                                {datosDetalle?.ciclo || "N/D"}
                             </Text>
                             <View className="flex-row items-center mb-2">
                                 <View
                                     className={`px-3 py-1 rounded-full mr-3 ${
-                                        tipoCartera === "VIGENTE"
+                                        datosDetalle?.tipoCartera === "VIGENTE"
                                             ? "bg-green-100"
-                                            : tipoCartera === "VENCIDA"
+                                            : datosDetalle?.tipoCartera === "VENCIDA"
                                             ? "bg-red-100"
                                             : "bg-yellow-100"
                                     }`}
                                 >
                                     <Text
                                         className={`text-sm font-medium ${
-                                            tipoCartera === "VIGENTE"
+                                            datosDetalle?.tipoCartera === "VIGENTE"
                                                 ? "text-green-700"
-                                                : tipoCartera === "VENCIDA"
+                                                : datosDetalle?.tipoCartera === "VENCIDA"
                                                 ? "text-red-700"
                                                 : "text-yellow-700"
                                         }`}
                                     >
-                                        {tipoCartera || "Sin estado"}
+                                        {datosDetalle?.tipoCartera || "Sin estado"}
                                     </Text>
                                 </View>
 
-                                {diasMora && parseInt(diasMora) > 0 && (
+                                {datosDetalle?.diasMora && parseInt(datosDetalle?.diasMora) > 0 && (
                                     <View className="bg-red-100 px-3 py-1 rounded-full">
                                         <Text className="text-sm font-medium text-red-700">
-                                            {diasMora} días en mora
+                                            {datosDetalle?.diasMora} días en mora
                                         </Text>
                                     </View>
                                 )}
@@ -401,13 +407,13 @@ export default function DetalleCredito() {
                         {resumen && resumen.progreso < 1 && (
                             <Pressable
                                 onPress={() => {
-                                    const params = new URLSearchParams({
-                                        noCreditoDetalle: noCredito,
-                                        cicloDetalle: ciclo,
-                                        pagoSemanalDetalle: resumen.pagosSemana,
-                                        timestamp: Date.now().toString()
+                                    establecerDatosPago({
+                                        noCreditoDetalle: datosDetalle?.noCredito,
+                                        cicloDetalle: datosDetalle?.ciclo,
+                                        pagoSemanalDetalle: resumen?.pagosSemana,
+                                        nombre: datosDetalle?.nombre
                                     })
-                                    router.push(`/(tabs)/Pago?${params}`)
+                                    router.push("/(tabs)/Pago")
                                 }}
                                 className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
                             >
@@ -421,20 +427,22 @@ export default function DetalleCredito() {
                             <View className="items-center flex-1">
                                 <Text className="text-xs text-gray-600 mb-1">Saldo Total</Text>
                                 <Text className="text-lg font-bold text-gray-800">
-                                    {numeral(saldoTotal || 0).format("$0,0.00")}
+                                    {numeral(resumen.saldoTotal).format("$0,0.00")}
                                 </Text>
                             </View>
-                            {moraTotal && parseFloat(moraTotal) > 0 && (
+                            {datosDetalle?.moraTotal && parseFloat(datosDetalle?.moraTotal) > 0 && (
                                 <View className="items-center flex-1">
                                     <Text className="text-xs text-gray-600 mb-1">Mora Total</Text>
                                     <Text className="text-lg font-bold text-red-600">
-                                        {numeral(moraTotal).format("$0,0.00")}
+                                        {numeral(datosDetalle?.moraTotal).format("$0,0.00")}
                                     </Text>
                                 </View>
                             )}
                             <View className="items-center flex-1">
                                 <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
-                                <Text className="text-sm font-medium text-gray-700">{diaPago}</Text>
+                                <Text className="text-sm font-medium text-gray-700">
+                                    {datosDetalle?.diaPago}
+                                </Text>
                             </View>
                         </View>
                     </View>
@@ -458,7 +466,7 @@ export default function DetalleCredito() {
                                         </Text>
                                     </View>
                                     <Text className="text-xl font-bold text-blue-800">
-                                        {numeral(cantEntregada).format("$0,0.00")}
+                                        {numeral(datosDetalle?.cantEntregada).format("$0,0.00")}
                                     </Text>
                                 </View>
                                 <View className="w-[48%] bg-green-50 p-4 rounded-xl mb-3">
@@ -636,18 +644,15 @@ export default function DetalleCredito() {
                                     No se han registrado pagos para este crédito
                                 </Text>
                                 <Pressable
-                                    onPress={() =>
-                                        router.push({
-                                            pathname: "/(tabs)/Pago",
-                                            params: {
-                                                noCreditoDetalle: creditoInfo.no_credito,
-                                                cicloDetalle: creditoInfo.ciclo,
-                                                nombre: creditoInfo.nombre,
-                                                pagoSemanalDetalle: creditoInfo.pago_semanal,
-                                                timestamp: Date.now().toString()
-                                            }
+                                    onPress={() => {
+                                        establecerDatosPago({
+                                            noCreditoDetalle: datosDetalle?.noCredito,
+                                            cicloDetalle: datosDetalle?.ciclo,
+                                            nombre: datosDetalle.nombre,
+                                            pagoSemanalDetalle: resumen?.pagosSemana || 0
                                         })
-                                    }
+                                        router.push("/(tabs)/Pago")
+                                    }}
                                     className="bg-blue-500 px-6 py-3 rounded-xl"
                                 >
                                     <Text className="text-white font-medium">
@@ -682,7 +687,7 @@ export default function DetalleCredito() {
                             <View>
                                 <Image
                                     source={{ uri: comprobanteSeleccionado }}
-                                    className="w-full h-80 rounded-xl"
+                                    className="h-96 rounded-xl"
                                     resizeMode="contain"
                                 />
                             </View>

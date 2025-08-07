@@ -7,7 +7,8 @@ import {
     ScrollView,
     Animated,
     Image,
-    Platform
+    Platform,
+    BackHandler
 } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
@@ -16,13 +17,15 @@ import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 import { useCustomAlert } from "../../hooks/useCustomAlert"
 import { useCartera } from "../../context/CarteraContext"
+import { usePago } from "../../context/PagoContext"
 import { pagosPendientes, catalogos } from "../../services"
 import CustomAlert from "../../components/CustomAlert"
 import * as ImagePicker from "expo-image-picker"
+import * as Location from "expo-location"
 
 export default function Pago() {
     const params = useLocalSearchParams()
-    const { noCreditoDetalle, cicloDetalle, pagoSemanalDetalle, timestamp } = params
+    const { datosPago, tieneContextoPago, limpiarDatosPago } = usePago()
     const insets = useContext(SafeAreaInsetsContext)
     const { alertRef, showError, showSuccess, showInfo } = useCustomAlert()
     const { validarCredito, obtenerInfoCredito } = useCartera()
@@ -50,33 +53,20 @@ export default function Pago() {
     const scaleAnim = useState(new Animated.Value(1))[0]
     const shakeAnim = useState(new Animated.Value(0))[0]
 
-    const vieneDeDetalle = parametrosValidos && Boolean(noCreditoDetalle && cicloDetalle)
+    const esDetalleCredito = tieneContextoPago()
 
-    // Efecto para validar parámetros al cargar el componente
+    // Efecto para cargar datos desde el contexto
     useEffect(() => {
-        if (timestamp && noCreditoDetalle && cicloDetalle) {
-            const timestampRecibido = parseInt(timestamp)
-            const tiempoActual = Date.now()
-            const diferenciaTiempo = tiempoActual - timestampRecibido
-
-            // Solo considerar válidos los parámetros si tienen menos de 5 minutos de antigüedad
-            if (diferenciaTiempo < 5 * 60 * 1000) {
-                // 5 minutos en millisegundos
-                setParametrosValidos(true)
-                setCredito(noCreditoDetalle)
-                setCiclo(cicloDetalle)
-                setMonto(pagoSemanalDetalle || "")
-                setTipoPago(pagoSemanalDetalle ? "P" : "") // P es el código por defecto para PAGO
-            } else {
-                // Parámetros antiguos, limpiar la navegación
-                setParametrosValidos(false)
-                router.replace("/(tabs)/Pago")
-            }
+        if (esDetalleCredito && datosPago) {
+            setParametrosValidos(true)
+            setCredito(datosPago.noCreditoDetalle)
+            setCiclo(datosPago.cicloDetalle)
+            setMonto(datosPago.pagoSemanalDetalle?.toString() || "")
+            setTipoPago(datosPago.pagoSemanalDetalle ? "P" : "") // P es el código por defecto para PAGO
         } else {
-            // No hay parámetros o están incompletos
             setParametrosValidos(false)
         }
-    }, [timestamp, noCreditoDetalle, cicloDetalle, pagoSemanalDetalle])
+    }, [esDetalleCredito, datosPago])
 
     // Efecto para validar el número de crédito cuando cambia
     useEffect(() => {
@@ -87,7 +77,7 @@ export default function Pago() {
             if (resultado.valido) {
                 setInfoCredito(resultado.cliente)
                 // Auto-llenar el ciclo si el crédito es válido y no viene de DetalleCredito
-                if (!vieneDeDetalle && resultado.cliente.ciclo) {
+                if (!esDetalleCredito && resultado.cliente.ciclo) {
                     setCiclo(resultado.cliente.ciclo.toString())
                 }
             } else {
@@ -101,7 +91,7 @@ export default function Pago() {
             setCreditoValido(null)
             setInfoCredito(null)
         }
-    }, [credito, validarCredito, vieneDeDetalle])
+    }, [credito, validarCredito, esDetalleCredito])
 
     // Cargar tipos de pago desde catálogos
     useEffect(() => {
@@ -156,6 +146,9 @@ export default function Pago() {
         setParametrosValidos(false)
         setCreditoValido(null)
         setInfoCredito(null)
+
+        // Limpiar contexto de pago
+        limpiarDatosPago()
     }
 
     const validarDatos = () => {
@@ -242,6 +235,13 @@ export default function Pago() {
                 style: "default",
                 onPress: async () => {
                     try {
+                        // Obtener ubicación antes de guardar el pago
+                        const ubicacion = await obtenerUbicacion()
+                        if (!ubicacion) {
+                            // Si no se pudo obtener la ubicación, no continuar
+                            return
+                        }
+
                         // Guardar el pago en storage como pendiente
                         const pagoData = {
                             credito,
@@ -250,7 +250,9 @@ export default function Pago() {
                             tipoPago: tipoPago, // código del tipo
                             tipoEtiqueta: tipoSeleccionado?.descripcion || tipoPago, // etiqueta para mostrar
                             nombreCliente: infoCredito?.nombre || params.nombre || "",
-                            fotoComprobante: fotoComprobante?.uri || null
+                            fotoComprobante: fotoComprobante?.uri || null,
+                            latitud: ubicacion.latitud,
+                            longitud: ubicacion.longitud
                         }
 
                         const resultado = await pagosPendientes.guardar(pagoData)
@@ -264,7 +266,11 @@ export default function Pago() {
                                     style: "default",
                                     onPress: () => {
                                         limpiarFormulario()
-                                        router.replace("/(tabs)/Cartera")
+                                        if (esDetalleCredito) {
+                                            router.push("/(screens)/DetalleCredito") // Regresar a DetalleCredito
+                                        } else {
+                                            router.replace("/(tabs)/Cartera")
+                                        }
                                     }
                                 }
                             ])
@@ -320,6 +326,48 @@ export default function Pago() {
         }
     }
 
+    const obtenerUbicacion = async () => {
+        try {
+            // Solicitar permisos de ubicación
+            const { status } = await Location.requestForegroundPermissionsAsync()
+
+            if (status !== "granted") {
+                showError(
+                    "Permisos Requeridos",
+                    "Se necesitan permisos de ubicación para registrar el pago",
+                    [{ text: "OK", style: "default" }]
+                )
+                return null
+            }
+
+            // Obtener ubicación actual
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
+                timeout: 10000,
+                maximumAge: 60000
+            })
+
+            return {
+                latitud: location.coords.latitude,
+                longitud: location.coords.longitude
+            }
+        } catch (error) {
+            console.error("Error al obtener ubicación:", error)
+            showError("Error", "No se pudo obtener la ubicación. Inténtelo de nuevo.", [
+                { text: "OK", style: "default" }
+            ])
+            return null
+        }
+    }
+
+    // BackHandler.addEventListener("hardwareBackPress", () => {
+    //     if (esDetalleCredito) {
+    //         router.push("/(screens)/DetalleCredito")
+    //     } else {
+    //         router.push("/(tabs)/Cartera")
+    //     }
+    // })
+
     return (
         <View
             className="flex-1"
@@ -341,7 +389,7 @@ export default function Pago() {
                         <View className="flex-1">
                             <Text className="text-2xl font-bold text-gray-800">Nuevo Pago</Text>
                             <Text className="text-base text-gray-600">
-                                {vieneDeDetalle
+                                {esDetalleCredito
                                     ? "Confirme los datos del pago"
                                     : "Complete la información del pago"}
                             </Text>
@@ -361,7 +409,7 @@ export default function Pago() {
                                     </Text>
                                     <View
                                         className={`border-2 rounded-2xl p-4 ${
-                                            vieneDeDetalle
+                                            esDetalleCredito
                                                 ? "bg-gray-50 border-gray-200"
                                                 : creditoValido === true
                                                 ? "border-green-400 bg-green-50"
@@ -377,7 +425,7 @@ export default function Pago() {
                                                 value={credito}
                                                 onChangeText={setCredito}
                                                 placeholder="Ej: 123456"
-                                                editable={!vieneDeDetalle}
+                                                editable={!esDetalleCredito}
                                                 onFocus={() => setFocusedField("credito")}
                                                 onBlur={() => setFocusedField("")}
                                                 className="flex-1 text-2xl font-bold text-gray-800"
@@ -400,7 +448,7 @@ export default function Pago() {
                                     </Text>
                                     <View
                                         className={`border-2 rounded-2xl p-4 ${
-                                            vieneDeDetalle
+                                            esDetalleCredito
                                                 ? "bg-gray-50 border-gray-200"
                                                 : focusedField === "ciclo"
                                                 ? "border-blue-400 bg-blue-50"
@@ -592,19 +640,12 @@ export default function Pago() {
                     </Animated.View>
                 </ScrollView>
                 <View className="flex-row px-6 pt-2 border-t border-gray-200 justify-between">
-                    {vieneDeDetalle ? (
+                    {esDetalleCredito ? (
                         <View className="mb-4">
                             <Pressable
                                 onPress={() => {
                                     limpiarFormulario()
-                                    router.push({
-                                        pathname: "/DetalleCredito",
-                                        params: {
-                                            noCredito: noCreditoDetalle,
-                                            ciclo: cicloDetalle,
-                                            nombre: params.nombre || infoCredito?.nombre || ""
-                                        }
-                                    })
+                                    router.push("/(screens)/DetalleCredito")
                                 }}
                                 className="bg-red-600 rounded-2xl p-4"
                             >
