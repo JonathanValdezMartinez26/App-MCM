@@ -94,16 +94,11 @@ export default {
             console.error("Error al obtener tipos de pago locales:", error)
         }
 
-        // Si no hay datos locales, retornar los por defecto
         return TIPOS_PAGO_DEFAULT
     },
 
-    // Inicializar catálogos (llamar en login o al abrir la app)
     inicializarCatalogos: async function () {
         try {
-            console.log("Inicializando catálogos...")
-
-            // Obtener tipos de pago
             const resultadoTipos = await this.getTiposPago()
 
             return {
@@ -113,8 +108,6 @@ export default {
             }
         } catch (error) {
             console.error("Error al inicializar catálogos:", error)
-
-            // En caso de error, usar datos locales
             const tiposLocal = await this.getTiposPagoLocal()
 
             return {

@@ -22,11 +22,9 @@ export default {
             // Si el login es exitoso, inicializar catálogos
             if (response.status === API_CONFIG.HTTP_STATUS.OK) {
                 try {
-                    console.log("Login exitoso, inicializando catálogos...")
                     await catalogos.inicializarCatalogos()
                 } catch (error) {
                     console.warn("Error al inicializar catálogos tras login:", error)
-                    // No afectar el login si falla la carga de catálogos
                 }
             }
 
@@ -40,7 +38,6 @@ export default {
             let errorMessage = "Error de conexión"
 
             if (error.response) {
-                // Error de respuesta del servidor
                 switch (error.response.status) {
                     case 401:
                         errorMessage = "Credenciales incorrectas"
@@ -74,7 +71,6 @@ export default {
             const token = await storage.getToken()
 
             if (token) {
-                console.log("Token encontrado, inicializando catálogos...")
                 await catalogos.inicializarCatalogos()
 
                 return {
@@ -83,7 +79,6 @@ export default {
                     catalogosInicializados: true
                 }
             } else {
-                // Sin token, solo cargar catálogos locales
                 const tiposLocal = await catalogos.getTiposPagoLocal()
 
                 return {

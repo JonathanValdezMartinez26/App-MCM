@@ -36,6 +36,7 @@ export const registroPagos = {
             }
 
             const data = {
+                id_local: pagoData.id, // ID único generado localmente
                 cdgns: pagoData.credito,
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
@@ -116,6 +117,34 @@ export const registroPagos = {
         return {
             success: resultados.fallidos.length === 0,
             resultados
+        }
+    },
+
+    // Verificar si un pago ya existe en el servidor por ID local
+    async verificarPagoExistente(idLocal) {
+        const token = await storage.getToken()
+        try {
+            const response = await apiClient.get(
+                `${API_CONFIG.ENDPOINTS.VERIFICAR_PAGO}/${idLocal}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            )
+
+            return {
+                success: true,
+                existe: response.data?.existe || false,
+                data: response.data
+            }
+        } catch (error) {
+            console.error("Error al verificar pago existente:", error)
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message || "Error de conexión",
+                existe: false
+            }
         }
     }
 }

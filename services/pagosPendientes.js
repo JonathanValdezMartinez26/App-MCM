@@ -4,18 +4,20 @@ const PAGOS_PENDIENTES_KEY = "pagos_pendientes"
 
 // Estructura de un pago pendiente:
 // {
-//     id: string (timestamp + credito),
+//     id: string (ID único hasheado),
 //     credito: string,
 //     ciclo: string,
 //     monto: number,
+//     comentarios: string (opcional),
 //     tipoPago: string (código del tipo de pago),
 //     tipoEtiqueta: string (descripción del tipo para mostrar),
 //     fechaCaptura: string (ISO date),
 //     nombreCliente: string,
 //     estado: 'pendiente',
-//     foto: string (opcional, URL de la imagen),
+//     fotoComprobante: string (opcional, URI de la imagen),
 //     latitud: number (opcional, coordenada de latitud),
-//     longitud: number (opcional, coordenada de longitud)
+//     longitud: number (opcional, coordenada de longitud),
+//     usuarioId: string (opcional, ID del usuario que registra)
 // }
 
 export const pagosPendientes = {
@@ -46,20 +48,28 @@ export const pagosPendientes = {
         try {
             const pagosExistentes = await this.obtenerTodos()
 
+            // Verificar si ya existe un pago con el mismo ID único
+            const pagoExistente = pagosExistentes.find((pago) => pago.id === pagoData.id)
+            if (pagoExistente) {
+                console.log(`Pago con ID ${pagoData.id} ya existe, evitando duplicado`)
+                return { success: true, pago: pagoExistente, duplicado: true }
+            }
+
             const nuevoPago = {
-                id: `${Date.now()}_${pagoData.credito}`,
+                id: pagoData.id || `${Date.now()}_${pagoData.credito}`, // Usar ID hasheado o fallback
                 credito: pagoData.credito,
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
                 comentarios: pagoData.comentarios || "",
                 tipoPago: pagoData.tipoPago,
                 tipoEtiqueta: pagoData.tipoEtiqueta || "Desconocido",
-                fechaCaptura: new Date().toISOString(),
+                fechaCaptura: pagoData.fechaCaptura || new Date().toISOString(),
                 nombreCliente: pagoData.nombreCliente || "",
                 estado: "pendiente",
                 fotoComprobante: pagoData.fotoComprobante || null,
                 latitud: pagoData.latitud || null,
-                longitud: pagoData.longitud || null
+                longitud: pagoData.longitud || null,
+                usuarioId: pagoData.usuarioId || null
             }
 
             const pagosActualizados = [...pagosExistentes, nuevoPago]

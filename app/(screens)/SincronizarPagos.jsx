@@ -18,7 +18,7 @@ import { useCustomAlert } from "../../hooks/useCustomAlert"
 import CustomAlert from "../../components/CustomAlert"
 import numeral from "numeral"
 
-export default function EntregarPagos() {
+export default function SincronizarPagos() {
     const insets = useContext(SafeAreaInsetsContext)
     const { alertRef, showError, showSuccess, showInfo } = useCustomAlert()
 
@@ -269,7 +269,14 @@ export default function EntregarPagos() {
                             </Text>
                             <Text className="text-sm text-gray-600">{item.nombreCliente}</Text>
                             <Text className="text-xs text-gray-500">
-                                {new Date(item.fechaCaptura).toLocaleString()}
+                                {new Date(item.fechaCaptura).toLocaleString("es-MX", {
+                                    year: "numeric",
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit"
+                                })}
                             </Text>
                         </View>
                         <View className="items-end">

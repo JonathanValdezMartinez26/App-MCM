@@ -23,6 +23,14 @@ export const useCustomAlert = () => {
         alertRef.current?.showAlert("simple", title, message, buttons)
     }
 
+    const showWait = (title, message) => {
+        alertRef.current?.showWait(title, message)
+    }
+
+    const hideWait = () => {
+        alertRef.current?.hideWait()
+    }
+
     const show = (type, title, message, buttons) => {
         alertRef.current?.showAlert(type, title, message, buttons)
     }
@@ -34,6 +42,8 @@ export const useCustomAlert = () => {
         showWarning,
         showInfo,
         showSimple,
+        showWait,
+        hideWait,
         show
     }
 }

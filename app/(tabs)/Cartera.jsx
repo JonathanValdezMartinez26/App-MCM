@@ -57,24 +57,17 @@ export default function Cartera() {
 
     return (
         <View
-            className="flex-1"
+            className="flex-1 bg-primary"
             style={{
                 paddingTop: insets.top,
-                paddingBottom: Platform.OS === "ios" ? 90 : 60,
-                backgroundColor: COLORS.primary
+                paddingBottom: Platform.OS === "ios" ? 90 : 60
             }}
         >
             <StatusBar barStyle="light-content" />
             <View className="flex-row items-center p-4">
                 <Image
                     source={images.avatar}
-                    style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        borderColor: COLORS.white,
-                        borderWidth: 1
-                    }}
+                    className="w-10 h-10 rounded-full border border-white"
                 />
                 <Text className="flex-1 ml-2.5 text-white">HOLA, {usuario?.nombre}</Text>
             </View>

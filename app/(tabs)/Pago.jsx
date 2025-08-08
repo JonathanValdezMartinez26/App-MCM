@@ -18,16 +18,18 @@ import numeral from "numeral"
 import { useCustomAlert } from "../../hooks/useCustomAlert"
 import { useCartera } from "../../context/CarteraContext"
 import { usePago } from "../../context/PagoContext"
-import { pagosPendientes, catalogos } from "../../services"
+import { pagosPendientes, catalogos, registroPagos } from "../../services"
 import CustomAlert from "../../components/CustomAlert"
 import * as ImagePicker from "expo-image-picker"
 import * as Location from "expo-location"
+import { generarIdPago } from "../../utils/pagoId"
+import storage from "../../utils/storage"
 
 export default function Pago() {
     const params = useLocalSearchParams()
     const { datosPago, tieneContextoPago, limpiarDatosPago } = usePago()
     const insets = useContext(SafeAreaInsetsContext)
-    const { alertRef, showError, showSuccess, showInfo } = useCustomAlert()
+    const { alertRef, showError, showSuccess, showInfo, showWait, hideWait } = useCustomAlert()
     const { validarCredito, obtenerInfoCredito } = useCartera()
 
     // Estado para controlar si los parámetros son válidos (vienen con timestamp reciente)
@@ -237,15 +239,28 @@ export default function Pago() {
                 style: "default",
                 onPress: async () => {
                     try {
+                        // Mostrar modal de espera al inicio del proceso
+                        showWait("Procesando Pago", "Registrando el pago, por favor espere...")
+
                         // Obtener ubicación antes de guardar el pago
                         const ubicacion = await obtenerUbicacion()
                         if (!ubicacion) {
                             // Si no se pudo obtener la ubicación, no continuar
+                            hideWait()
                             return
                         }
 
-                        // Guardar el pago en storage como pendiente
+                        // Obtener información del usuario actual
+                        const usuario = await storage.getUser()
+                        const usuarioId = usuario?.id_usuario || "UNKNOWN"
+
+                        // Generar ID único para el pago
+                        const fechaCaptura = new Date().toISOString()
+                        const idPago = await generarIdPago(credito, fechaCaptura, usuarioId, monto)
+
+                        // Preparar los datos del pago
                         const pagoData = {
+                            id: idPago,
                             credito,
                             ciclo,
                             monto,
@@ -255,22 +270,84 @@ export default function Pago() {
                             nombreCliente: infoCredito?.nombre || params.nombre || "",
                             fotoComprobante: fotoComprobante?.uri || null,
                             latitud: ubicacion.latitud,
-                            longitud: ubicacion.longitud
+                            longitud: ubicacion.longitud,
+                            fechaCaptura: fechaCaptura,
+                            usuarioId: usuarioId
                         }
 
+                        // Intentar enviar directamente al servidor primero
+                        try {
+                            // Verificar si el pago ya existe en el servidor
+                            const verificacion = await registroPagos.verificarPagoExistente(idPago)
+
+                            if (verificacion.success && verificacion.existe) {
+                                // El pago ya existe en el servidor
+                                hideWait()
+                                showInfo(
+                                    "Pago Ya Registrado",
+                                    "Este pago ya fue registrado anteriormente en el servidor",
+                                    [
+                                        {
+                                            text: "OK",
+                                            style: "default",
+                                            onPress: () => {
+                                                limpiarFormulario()
+                                                if (esDetalleCredito) {
+                                                    router.push("/(screens)/DetalleCredito")
+                                                } else {
+                                                    router.replace("/(tabs)/Cartera")
+                                                }
+                                            }
+                                        }
+                                    ]
+                                )
+                                return
+                            }
+
+                            // Si no existe, proceder con el registro
+                            const resultadoServidor = await registroPagos.registrarPago(pagoData)
+
+                            if (resultadoServidor.success) {
+                                // ✅ Pago enviado exitosamente al servidor
+                                hideWait()
+                                const mensaje = `${tipoSeleccionado?.descripcion} de ${montoFormateado} registrado exitosamente en el servidor`
+
+                                showSuccess("¡Pago Registrado!", mensaje, [
+                                    {
+                                        text: "OK",
+                                        style: "default",
+                                        onPress: () => {
+                                            limpiarFormulario()
+                                            if (esDetalleCredito) {
+                                                router.push("/(screens)/DetalleCredito")
+                                            } else {
+                                                router.replace("/(tabs)/Cartera")
+                                            }
+                                        }
+                                    }
+                                ])
+                                return
+                            }
+                        } catch (error) {
+                            console.log("Error al enviar al servidor, guardando localmente:", error)
+                        }
+
+                        // Si llegamos aquí, no se pudo enviar al servidor
+                        // Guardar en storage local como pendiente
                         const resultado = await pagosPendientes.guardar(pagoData)
 
                         if (resultado.success) {
-                            const mensaje = `${tipoSeleccionado?.descripcion} de ${montoFormateado} guardado como pendiente para el crédito ${credito}`
+                            hideWait()
+                            const mensaje = `${tipoSeleccionado?.descripcion} de ${montoFormateado} guardado localmente, debe realizar la sincronización manual después.`
 
-                            showSuccess("¡Pago Guardado!", mensaje, [
+                            showInfo("Pago Guardado Localmente", mensaje, [
                                 {
                                     text: "OK",
                                     style: "default",
                                     onPress: () => {
                                         limpiarFormulario()
                                         if (esDetalleCredito) {
-                                            router.push("/(screens)/DetalleCredito") // Regresar a DetalleCredito
+                                            router.push("/(screens)/DetalleCredito")
                                         } else {
                                             router.replace("/(tabs)/Cartera")
                                         }
@@ -278,13 +355,15 @@ export default function Pago() {
                                 }
                             ])
                         } else {
+                            hideWait()
                             showError("Error", "No se pudo guardar el pago. Inténtelo de nuevo.", [
                                 { text: "OK", style: "default" }
                             ])
                         }
                     } catch (error) {
                         console.error("Error al procesar pago:", error)
-                        showError("Error", "Ocurrió un error inesperado al guardar el pago.", [
+                        hideWait()
+                        showError("Error", "Ocurrió un error inesperado al procesar el pago.", [
                             { text: "OK", style: "default" }
                         ])
                     }
@@ -373,11 +452,10 @@ export default function Pago() {
 
     return (
         <View
-            className="flex-1"
+            className="flex-1 bg-primary"
             style={{
                 paddingTop: insets.top,
-                paddingBottom: Platform.OS === "ios" ? 90 : 60,
-                backgroundColor: COLORS.primary
+                paddingBottom: Platform.OS === "ios" ? 90 : 60
             }}
         >
             <View className="flex-row items-center p-4">
@@ -496,7 +574,7 @@ export default function Pago() {
                                                 name="check"
                                                 size={20}
                                                 color="#16a34a"
-                                                style={{ marginRight: 8 }}
+                                                className="mr-2"
                                             />
                                             <Text className="text-base font-medium text-gray-800">
                                                 {tiposPago.find((t) => t.codigo === tipoPago)

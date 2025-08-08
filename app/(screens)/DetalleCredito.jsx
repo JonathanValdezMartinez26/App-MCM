@@ -27,7 +27,7 @@ export default function DetalleCredito() {
     const [comprobanteSeleccionado, setComprobanteSeleccionado] = useState(null)
     const maxMov = 10
     const insets = useContext(SafeAreaInsetsContext)
-    const { alertRef, showInfo } = useCustomAlert()
+    const { alertRef, showInfo, showError } = useCustomAlert()
 
     const volverAClientes = () => {
         limpiarDatosDetalle()
@@ -43,12 +43,12 @@ export default function DetalleCredito() {
             setComprobanteSeleccionado(pago.fotoComprobante)
             setModalComprobanteVisible(true)
         } else {
-            Alert.alert("Sin comprobante", "Este pago no tiene una foto del comprobante asociada.")
+            showError("Sin comprobante", "Este pago no tiene una foto del comprobante asociada.")
         }
     }
 
     const eliminarPago = async (pagoId) => {
-        Alert.alert("Eliminar Pago", "¿Está seguro de que desea eliminar este pago pendiente?", [
+        showError("Eliminar Pago", "¿Está seguro de que desea eliminar este pago pendiente?", [
             {
                 text: "Cancelar",
                 style: "cancel"
@@ -286,10 +286,7 @@ export default function DetalleCredito() {
 
     if (loading) {
         return (
-            <View
-                className="flex-1 justify-center items-center"
-                style={{ backgroundColor: COLORS.primary }}
-            >
+            <View className="flex-1 justify-center items-center bg-primary">
                 <Text className="text-white text-lg">Cargando detalle...</Text>
             </View>
         )
@@ -297,10 +294,9 @@ export default function DetalleCredito() {
 
     return (
         <View
-            className="flex-1"
+            className="flex-1 bg-primary"
             style={{
-                paddingTop: insets.top,
-                backgroundColor: COLORS.primary
+                paddingTop: insets.top
             }}
         >
             <View className="flex-row items-center p-4">

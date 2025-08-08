@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, Pressable } from "react-native"
+import { View, Text, Image, Pressable } from "react-native"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { router } from "expo-router"
 import { COLORS, images } from "../../constants"
@@ -59,9 +59,12 @@ export default function Perfil() {
 
     return (
         <View className="flex-1">
-            <View className="h-60" style={{ backgroundColor: COLORS.primary }}>
-                <View style={styles.avatarContainer}>
-                    <Image source={images.avatar} style={styles.avatar} />
+            <View className="h-60 bg-primary">
+                <View className="absolute top-36 self-center">
+                    <Image
+                        source={images.avatar}
+                        className="w-28 h-28 rounded-full border-4 border-white"
+                    />
                 </View>
             </View>
 
@@ -76,7 +79,7 @@ export default function Perfil() {
                 {/* Botón Entregar Pagos */}
                 <Pressable
                     className="bg-green-50 border border-green-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
-                    onPress={() => router.push("/(screens)/EntregarPagos")}
+                    onPress={() => router.push("/(screens)/SincronizarPagos")}
                 >
                     <MaterialIcons name="sync" size={24} color="#16a34a" />
                     <Text className="text-green-600 text-base font-medium ml-3">
@@ -99,18 +102,3 @@ export default function Perfil() {
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    avatarContainer: {
-        position: "absolute",
-        top: 150,
-        alignSelf: "center"
-    },
-    avatar: {
-        width: 112,
-        height: 112,
-        borderRadius: 56,
-        borderWidth: 4,
-        borderColor: "#fff"
-    }
-})
