@@ -10,6 +10,8 @@ import numeral from "numeral"
 import { useCallback } from "react"
 import { usePago } from "../../context/PagoContext"
 import { useDetalle } from "../../context/DetalleContext"
+import CustomAlert from "../../components/CustomAlert"
+import { useCustomAlert } from "../../hooks/useCustomAlert"
 
 numeral.zeroFormat(0)
 numeral.nullFormat(0)
@@ -25,6 +27,7 @@ export default function DetalleCredito() {
     const [comprobanteSeleccionado, setComprobanteSeleccionado] = useState(null)
     const maxMov = 10
     const insets = useContext(SafeAreaInsetsContext)
+    const { alertRef, showInfo } = useCustomAlert()
 
     const volverAClientes = () => {
         limpiarDatosDetalle()
@@ -140,6 +143,14 @@ export default function DetalleCredito() {
         return "#ef4444"
     }
 
+    const handleInfoPress = (field) => {
+        const info = {
+            totalPagado:
+                "Este total considera únicamente los abonos aplicados al capital e intereses del crédito, excluyendo otros conceptos."
+        }
+        showInfo(info[field])
+    }
+
     const resumen = resumenDetalle()
 
     const TransaccionPendiente = ({ pago, index }) => {
@@ -172,49 +183,27 @@ export default function DetalleCredito() {
         }
 
         return (
-            <View className="mb-4" style={{ overflow: "hidden", borderRadius: 16 }}>
-                <View
-                    style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 160,
-                        flexDirection: "row",
-                        backgroundColor: "transparent"
-                    }}
-                >
+            <View>
+                <View className="flex-row mb-4 absolute top-0 left-0 bottom-0">
                     <Pressable
                         onPress={() => {
                             closeActions()
                             verComprobante(pago)
                         }}
-                        style={{
-                            backgroundColor: "#3b82f6",
-                            width: 80,
-                            justifyContent: "center",
-                            alignItems: "center"
-                        }}
+                        className="bg-[#3b82f6] rounded-l-2xl justify-center items-center p-4"
                     >
                         <MaterialIcons name="visibility" size={24} color="white" />
-                        <Text style={{ color: "white", fontSize: 12, marginTop: 4 }}>
-                            Comprobante
-                        </Text>
+                        <Text className="text-white text-xs mt-1">Comprobante</Text>
                     </Pressable>
                     {/* <Pressable
                         onPress={() => {
                             closeActions()
                             eliminarPago(pago.id)
                         }}
-                        style={{
-                            backgroundColor: "#ef4444",
-                            width: 80,
-                            justifyContent: "center",
-                            alignItems: "center"
-                        }}
+                        className="bg-[#ef4444] rounded-l-2xl justify-center items-center p-4"
                     >
                         <MaterialIcons name="delete" size={24} color="white" />
-                        <Text style={{ color: "white", fontSize: 12, marginTop: 4 }}>Eliminar</Text>
+                        <Text className="text-white text-xs mt-1">Eliminar</Text>
                     </Pressable> */}
                 </View>
 
@@ -225,6 +214,7 @@ export default function DetalleCredito() {
                     minDeltaX={10}
                 >
                     <Animated.View
+                        className="bg-[#fefce8] border border-[#fde047] rounded-2xl px-4 py-2 mb-4 shadow-md"
                         style={{
                             transform: [
                                 {
@@ -235,100 +225,58 @@ export default function DetalleCredito() {
                                     })
                                 }
                             ],
-                            backgroundColor: "#fefce8",
-                            borderWidth: 1,
-                            borderColor: "#fde047",
-                            borderRadius: 16,
-                            padding: 16,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
                             elevation: 3
                         }}
                     >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                            }}
-                        >
-                            <View style={{ flexDirection: "row", flex: 1 }}>
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        marginBottom: 8
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            backgroundColor: "#fef3c7",
-                                            padding: 8,
-                                            borderRadius: 20,
-                                            marginRight: 12
-                                        }}
-                                    >
-                                        <MaterialIcons name="schedule" size={16} color="#f59e0b" />
+                        <View className="flex-row">
+                            <View className="flex-row items-center mb-2">
+                                <View className="bg-[#fef3c7] p-2 rounded-full mr-3">
+                                    <MaterialIcons name="schedule" size={16} color="#f59e0b" />
+                                </View>
+                            </View>
+                            <View className="flex-1">
+                                <View className="flex-row mb-1">
+                                    <View className="items-start">
+                                        <Text className="text-sm font-medium text-gray-800">
+                                            Pago{" "}
+                                            {new Date(pago.fechaCaptura).toLocaleDateString(
+                                                "es-MX",
+                                                {
+                                                    year: "numeric",
+                                                    month: "2-digit",
+                                                    day: "2-digit"
+                                                }
+                                            )}
+                                        </Text>
+                                        <Text className="text-xs text-gray-500">
+                                            {new Date(pago.fechaCaptura).toLocaleTimeString(
+                                                "es-MX",
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    second: "2-digit"
+                                                }
+                                            )}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-1 items-end justify-center">
+                                        <Text className="text-lg font-bold text-amber-800">
+                                            {numeral(pago.monto).format("$0,0.00")}
+                                        </Text>
+                                        <Text className="text-xs text-amber-800">En Transito</Text>
                                     </View>
                                 </View>
-
-                                <View style={{ alignItems: "flex-start" }}>
-                                    <Text
-                                        style={{
-                                            fontSize: 14,
-                                            fontWeight: "500",
-                                            color: "#1f2937"
-                                        }}
-                                    >
-                                        Pago{" "}
-                                        {new Date(pago.fechaCaptura).toLocaleDateString("es-MX", {
-                                            year: "numeric",
-                                            month: "2-digit",
-                                            day: "2-digit"
-                                        })}
-                                    </Text>
-                                    <Text style={{ fontSize: 12, color: "#6b7280" }}>
-                                        {new Date(pago.fechaCaptura).toLocaleTimeString("es-MX", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit"
-                                        })}
-                                    </Text>
-                                    <View
-                                        style={{
-                                            backgroundColor: "#fef3c7",
-                                            paddingHorizontal: 8,
-                                            paddingVertical: 4,
-                                            borderRadius: 6,
-                                            marginTop: 4
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                fontSize: 12,
-                                                fontWeight: "500",
-                                                color: "#92400e"
-                                            }}
-                                        >
+                                <View className="items-start">
+                                    <View className="bg-[#fef3c7] px-2 py-1 rounded-md mr-2">
+                                        <Text className="text-xs font-medium text-amber-800">
                                             {pago.tipoEtiqueta}
                                         </Text>
                                     </View>
                                 </View>
                             </View>
-
-                            <View style={{ alignItems: "flex-end" }}>
-                                <Text
-                                    style={{ fontSize: 18, fontWeight: "bold", color: "#d97706" }}
-                                >
-                                    {numeral(pago.monto).format("$0,0.00")}
-                                </Text>
-                                <Text style={{ fontSize: 12, color: "#d97706" }}>En Transito</Text>
-                                <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
-                                    👉 Deslizar para opciones
-                                </Text>
-                            </View>
+                        </View>
+                        <View className="flex-row justify-center items-center w-full mt-1">
+                            <Text className="text-xs text-gray-500">👉 Deslizar para opciones</Text>
                         </View>
                     </Animated.View>
                 </PanGestureHandler>
@@ -476,7 +424,15 @@ export default function DetalleCredito() {
                                             Total Pagado
                                         </Text>
                                         <View className="ml-auto">
-                                            <MaterialIcons name="info" size={20} color="#4fa2b0" />
+                                            <Pressable
+                                                onPress={() => handleInfoPress("totalPagado")}
+                                            >
+                                                <MaterialIcons
+                                                    name="info"
+                                                    size={20}
+                                                    color="#4fa2b0"
+                                                />
+                                            </Pressable>
                                         </View>
                                     </View>
                                     <Text className="text-xl font-bold text-green-800">
@@ -572,40 +528,47 @@ export default function DetalleCredito() {
                                         .map((mov, index) => (
                                             <View
                                                 key={`procesado-${index}`}
-                                                className="bg-white border border-gray-200 rounded-2xl p-4 mb-4 shadow-md"
+                                                className="bg-white border border-gray-200 rounded-2xl px-4 py-2 mb-4 shadow-md"
                                             >
-                                                <View className="flex-row justify-between items-center">
-                                                    <View className="flex-row flex-1">
-                                                        <View className="flex-row items-center mb-2">
-                                                            <View className="bg-green-100 p-2 rounded-full mr-3">
-                                                                <MaterialIcons
-                                                                    name="attach-money"
-                                                                    size={16}
-                                                                    color="#16a34a"
-                                                                />
+                                                <View className="flex-row">
+                                                    <View className="flex-row items-center mb-2">
+                                                        <View className="bg-green-100 p-2 rounded-full mr-3">
+                                                            <MaterialIcons
+                                                                name="attach-money"
+                                                                size={16}
+                                                                color="#16a34a"
+                                                            />
+                                                        </View>
+                                                    </View>
+                                                    <View className="flex-1">
+                                                        <View className="flex-row mb-1">
+                                                            <View className="justify-center items-start">
+                                                                <Text className="text-sm font-medium text-gray-800">
+                                                                    Pago {mov.fecha_valor}
+                                                                </Text>
+                                                                <Text className="text-xs text-gray-500">
+                                                                    {mov.fecha_captura ||
+                                                                        "Sin fecha"}
+                                                                </Text>
+                                                            </View>
+                                                            <View className="flex-1 items-end justify-center">
+                                                                <Text className="text-lg font-bold text-green-600">
+                                                                    {numeral(mov?.monto).format(
+                                                                        "$0,0.00"
+                                                                    )}
+                                                                </Text>
+                                                                <Text className="text-xs">
+                                                                    {mov.estatus_caja}
+                                                                </Text>
                                                             </View>
                                                         </View>
                                                         <View className="items-start">
-                                                            <Text className="text-sm font-medium text-gray-800">
-                                                                Pago {mov.fecha_valor}
-                                                            </Text>
-                                                            <Text className="text-xs text-gray-500">
-                                                                {mov.fecha_captura || "Sin fecha"}
-                                                            </Text>
                                                             <View className="bg-blue-100 px-2 py-1 rounded-md mr-2 ">
                                                                 <Text className="text-xs font-medium text-blue-700">
                                                                     {mov.tipo || "Pago"}
                                                                 </Text>
                                                             </View>
                                                         </View>
-                                                    </View>
-                                                    <View className="items-end">
-                                                        <Text className="text-lg font-bold text-green-600">
-                                                            {numeral(mov?.monto).format("$0,0.00")}
-                                                        </Text>
-                                                        <Text className="text-xs">
-                                                            {mov.estatus_caja}
-                                                        </Text>
                                                     </View>
                                                 </View>
                                             </View>
@@ -706,6 +669,8 @@ export default function DetalleCredito() {
                     </View>
                 </View>
             </Modal>
+
+            <CustomAlert ref={alertRef} />
         </View>
     )
 }

@@ -39,6 +39,7 @@ export default function Pago() {
     const [monto, setMonto] = useState("")
     const [tipoPago, setTipoPago] = useState("")
     const [fotoComprobante, setFotoComprobante] = useState(null)
+    const [comentarios, setComentarios] = useState("")
 
     // Estados para validación de crédito
     const [creditoValido, setCreditoValido] = useState(null)
@@ -140,6 +141,7 @@ export default function Pago() {
         setCiclo("")
         setMonto("")
         setTipoPago("")
+        setComentarios("")
         setFotoComprobante(null)
         setMontoFormateado("")
         setFocusedField("")
@@ -247,6 +249,7 @@ export default function Pago() {
                             credito,
                             ciclo,
                             monto,
+                            comentarios,
                             tipoPago: tipoPago, // código del tipo
                             tipoEtiqueta: tipoSeleccionado?.descripcion || tipoPago, // etiqueta para mostrar
                             nombreCliente: infoCredito?.nombre || params.nombre || "",
@@ -605,6 +608,20 @@ export default function Pago() {
                                 </Pressable>
                             </View>
                         </View>
+                        {/* Campo de texto para comentarios */}
+                        <View className="mb-6">
+                            <Text className="text-sm font-medium text-gray-700 mb-2">
+                                Comentarios
+                            </Text>
+                            <TextInput
+                                value={comentarios}
+                                onChangeText={setComentarios}
+                                className="border border-gray-300 rounded-lg p-2"
+                                multiline
+                                numberOfLines={5}
+                                placeholder="Escribe tus comentarios aquí..."
+                            />
+                        </View>
                         {fotoComprobante && (
                             <View>
                                 <Text className="text-sm font-medium text-gray-700 mb-2">
@@ -678,9 +695,7 @@ export default function Pago() {
                         >
                             <View className="flex-row items-center justify-center">
                                 <MaterialIcons name="save" size={20} color="white" />
-                                <Text className="text-white font-semibold ml-2">
-                                    Registrar Pago
-                                </Text>
+                                <Text className="text-white font-semibold ml-2">Guardar</Text>
                             </View>
                         </Pressable>
                     </Animated.View>

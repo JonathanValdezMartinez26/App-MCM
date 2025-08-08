@@ -13,7 +13,7 @@ import {
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"
 import { useCartera } from "../../context/CarteraContext"
-import { Feather, MaterialIcons } from "@expo/vector-icons"
+import { MaterialIcons } from "@expo/vector-icons"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import TarjetaCarteraCredito from "../../components/TarjetaCarteraCredito"
 
@@ -99,7 +99,7 @@ export default function Cartera() {
                             {loading ? (
                                 <ActivityIndicator color="black" size="small" />
                             ) : (
-                                <Feather name="refresh-ccw" size={24} color="black" />
+                                <MaterialIcons name="refresh" size={24} color="black" />
                             )}
                         </Pressable>
                     </View>

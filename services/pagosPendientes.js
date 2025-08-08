@@ -51,6 +51,7 @@ export const pagosPendientes = {
                 credito: pagoData.credito,
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
+                comentarios: pagoData.comentarios || "",
                 tipoPago: pagoData.tipoPago,
                 tipoEtiqueta: pagoData.tipoEtiqueta || "Desconocido",
                 fechaCaptura: new Date().toISOString(),

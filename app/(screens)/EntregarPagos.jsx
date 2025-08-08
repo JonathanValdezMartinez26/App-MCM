@@ -1,5 +1,14 @@
 import { useContext, useState, useEffect } from "react"
-import { View, Text, Pressable, TextInput, FlatList, Image, ActivityIndicator } from "react-native"
+import {
+    View,
+    Text,
+    Pressable,
+    TextInput,
+    FlatList,
+    Image,
+    Modal,
+    ActivityIndicator
+} from "react-native"
 import { router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { COLORS } from "../../constants"
@@ -267,33 +276,33 @@ export default function EntregarPagos() {
                             <Text className="text-lg font-bold text-green-600">
                                 {numeral(item.monto).format("$0,0.00")}
                             </Text>
-                            <View className="bg-yellow-100 px-2 py-1 rounded-md">
-                                <Text className="text-xs font-medium text-yellow-700">
-                                    {item.tipoEtiqueta || item.tipoPago}
-                                </Text>
-                            </View>
+                            <Pressable
+                                onPress={() => verComprobante(item)}
+                                className="bg-blue-500 px-3 py-2 rounded-lg"
+                            >
+                                <View className="flex-row items-center">
+                                    <MaterialIcons name="visibility" size={16} color="white" />
+                                    <Text className="text-white text-xs ml-1">Comprobante</Text>
+                                </View>
+                            </Pressable>
+                            {/* <Pressable
+                                onPress={() => eliminarPago(item.id)}
+                                className="bg-red-500 px-3 py-2 rounded-lg"
+                            >
+                                <View className="flex-row items-center">
+                                    <MaterialIcons name="delete" size={16} color="white" />
+                                    <Text className="text-white text-xs ml-1">Eliminar</Text>
+                                </View>
+                            </Pressable> */}
                         </View>
                     </View>
 
-                    <View className="flex-row justify-end mt-2">
-                        <Pressable
-                            onPress={() => verComprobante(item)}
-                            className="bg-blue-500 px-3 py-2 rounded-lg mr-2"
-                        >
-                            <View className="flex-row items-center">
-                                <MaterialIcons name="visibility" size={16} color="white" />
-                                <Text className="text-white text-xs ml-1">Comprobante</Text>
-                            </View>
-                        </Pressable>
-                        {/* <Pressable
-                            onPress={() => eliminarPago(item.id)}
-                            className="bg-red-500 px-3 py-2 rounded-lg"
-                        >
-                            <View className="flex-row items-center">
-                                <MaterialIcons name="delete" size={16} color="white" />
-                                <Text className="text-white text-xs ml-1">Eliminar</Text>
-                            </View>
-                        </Pressable> */}
+                    <View className="flex-row justify-start">
+                        <View className="bg-yellow-100 px-2 py-1 rounded-md">
+                            <Text className="text-xs font-medium text-yellow-700">
+                                {item.tipoEtiqueta || item.tipoPago}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -312,7 +321,7 @@ export default function EntregarPagos() {
                 <Pressable onPress={() => router.back()} className="mr-4">
                     <Feather name="arrow-left" size={24} color="white" />
                 </Pressable>
-                <Text className="flex-1 text-white text-lg font-semibold">Entregar Pagos</Text>
+                <Text className="flex-1 text-white text-lg font-semibold">Sincronizar Pagos</Text>
                 <View className="flex-row items-center">
                     <Pressable
                         onPress={() => setMostrarBusqueda(!mostrarBusqueda)}
@@ -418,29 +427,22 @@ export default function EntregarPagos() {
                             {loading ? (
                                 <ActivityIndicator size="small" color="white" />
                             ) : (
-                                <MaterialIcons name="local-shipping" size={20} color="white" />
+                                <MaterialIcons name="sync" size={20} color="white" />
                             )}
                             <Text className="text-white font-semibold ml-2">
-                                {loading ? "Procesando..." : "Entregar"}
+                                {loading ? "Procesando..." : "Sincronizar Pagos"}
                             </Text>
                         </View>
                     </Pressable>
                 </View>
             </View>
-            {modalComprobanteVisible && (
-                <View
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: "rgba(0, 0, 0, 0.8)",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        zIndex: 1000
-                    }}
-                >
+            <Modal
+                visible={modalComprobanteVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalComprobanteVisible(false)}
+            >
+                <View className="flex-1 bg-black bg-opacity-80 justify-center items-center">
                     <View className="bg-white rounded-2xl p-4 m-4 max-w-sm w-full">
                         <View className="flex-row justify-between items-center mb-4">
                             <Text className="text-lg font-semibold text-gray-800">
@@ -453,20 +455,13 @@ export default function EntregarPagos() {
                                 <MaterialIcons name="close" size={24} color="#6B7280" />
                             </Pressable>
                         </View>
-
                         {comprobanteSeleccionado ? (
                             <View>
                                 <Image
                                     source={{ uri: comprobanteSeleccionado }}
-                                    className="w-full h-80 rounded-xl"
+                                    className="h-96 rounded-xl"
                                     resizeMode="contain"
                                 />
-                                <View className="mt-4 flex-row items-center justify-center">
-                                    <MaterialIcons name="verified" size={20} color="#16a34a" />
-                                    <Text className="text-green-700 font-medium ml-2">
-                                        Comprobante verificado
-                                    </Text>
-                                </View>
                             </View>
                         ) : (
                             <View className="items-center py-8">
@@ -482,7 +477,7 @@ export default function EntregarPagos() {
                         )}
                     </View>
                 </View>
-            )}
+            </Modal>
             <CustomAlert ref={alertRef} />
         </View>
     )

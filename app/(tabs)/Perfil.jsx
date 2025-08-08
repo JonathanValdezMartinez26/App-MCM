@@ -78,9 +78,9 @@ export default function Perfil() {
                     className="bg-green-50 border border-green-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
                     onPress={() => router.push("/(screens)/EntregarPagos")}
                 >
-                    <MaterialIcons name="local-shipping" size={24} color="#16a34a" />
+                    <MaterialIcons name="sync" size={24} color="#16a34a" />
                     <Text className="text-green-600 text-base font-medium ml-3">
-                        Entregar Pagos
+                        Sincronizar Pagos
                     </Text>
                 </Pressable>
 

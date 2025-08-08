@@ -39,6 +39,7 @@ export const registroPagos = {
                 cdgns: pagoData.credito,
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
+                comentarios_ejecutivo: pagoData.comentarios || "",
                 tipomov: pagoData.tipoPago,
                 foto: fotoBase64,
                 fecha_valor: fecha,
