@@ -11,8 +11,7 @@ export const API_CONFIG = {
         CLIENTES_EJECUTIVO: "/ConsultaClientesEjecutivo",
         DETALLE_CREDITO: "/DetalleMovimientosCliente",
         AGREGAR_PAGO_CLIENTE: "/AgregarPagoCliente",
-        CATALOGO_TIPOS_PAGO: "/CatalogoTiposPago",
-        VERIFICAR_PAGO: "/VerificarPago"
+        CATALOGO_TIPOS_PAGO: "/CatalogoTiposPago"
     },
 
     HTTP_STATUS: {

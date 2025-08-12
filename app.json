@@ -23,7 +23,7 @@
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/logos/icon.png",
-                "backgroundColor": "#fff"
+                "backgroundColor": "#ffffff"
             },
             "package": "com.mcm_dev_01.MasConMenos",
             "permissions": ["CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
@@ -48,6 +48,12 @@
             "eas": {
                 "projectId": "f60752da-4dcc-4a21-a7ce-5c0dda96d9a2"
             }
+        },
+        "runtimeVersion": {
+            "policy": "appVersion"
+        },
+        "updates": {
+            "url": "https://u.expo.dev/f60752da-4dcc-4a21-a7ce-5c0dda96d9a2"
         }
     }
 }

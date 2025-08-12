@@ -3,7 +3,6 @@ import storage from "../utils/storage"
 import * as FileSystem from "expo-file-system"
 
 export const registroPagos = {
-    // Convertir imagen a base64
     async convertirImagenABase64(uri) {
         try {
             const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -20,14 +19,11 @@ export const registroPagos = {
     async registrarPago(pagoData) {
         const token = await storage.getToken()
         try {
-            // Preparar los datos según el formato esperado por el endpoint
             const fecha = pagoData.fechaCaptura.split("T")[0].split("/").reverse().join("-")
 
             let fotoBase64 = null
 
-            // Si hay foto, convertirla a base64
             if (pagoData.fotoComprobante) {
-                console.log("Convirtiendo foto a base64...")
                 fotoBase64 = await this.convertirImagenABase64(pagoData.fotoComprobante)
 
                 if (!fotoBase64) {
@@ -36,7 +32,7 @@ export const registroPagos = {
             }
 
             const data = {
-                id_local: pagoData.id, // ID único generado localmente
+                id_local: pagoData.id,
                 cdgns: pagoData.credito,
                 ciclo: pagoData.ciclo,
                 monto: parseFloat(pagoData.monto),
@@ -48,10 +44,10 @@ export const registroPagos = {
                 longitud: pagoData.longitud || null
             }
 
-            console.log("Enviando pago al servidor:", {
-                ...data,
-                foto: fotoBase64 ? `[base64 image ${fotoBase64.length} chars]` : null
-            })
+            // console.log("Enviando pago al servidor:", {
+            //     ...data,
+            //     foto: fotoBase64 ? `[base64 image ${fotoBase64.length} chars]` : null
+            // })
 
             const response = await apiClient.post(API_CONFIG.ENDPOINTS.AGREGAR_PAGO_CLIENTE, data, {
                 headers: {
@@ -93,7 +89,6 @@ export const registroPagos = {
             total: pagosArray.length
         }
 
-        // Procesar pagos uno por uno para mejor control de errores
         for (const pago of pagosArray) {
             const resultado = await this.registrarPago(pago)
 
@@ -117,34 +112,6 @@ export const registroPagos = {
         return {
             success: resultados.fallidos.length === 0,
             resultados
-        }
-    },
-
-    // Verificar si un pago ya existe en el servidor por ID local
-    async verificarPagoExistente(idLocal) {
-        const token = await storage.getToken()
-        try {
-            const response = await apiClient.get(
-                `${API_CONFIG.ENDPOINTS.VERIFICAR_PAGO}/${idLocal}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            )
-
-            return {
-                success: true,
-                existe: response.data?.existe || false,
-                data: response.data
-            }
-        } catch (error) {
-            console.error("Error al verificar pago existente:", error)
-            return {
-                success: false,
-                error: error.response?.data?.message || error.message || "Error de conexión",
-                existe: false
-            }
         }
     }
 }

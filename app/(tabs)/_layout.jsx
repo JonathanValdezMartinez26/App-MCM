@@ -1,6 +1,6 @@
 import { Tabs, router } from "expo-router"
 import { View, Text, Platform } from "react-native"
-import { Feather, AntDesign } from "@expo/vector-icons"
+import { Feather, AntDesign, SimpleLineIcons } from "@expo/vector-icons"
 import { useEffect } from "react"
 import { COLORS, FONTS, SIZES } from "../../constants"
 import { useSession } from "../../context/SessionContext"
@@ -79,6 +79,37 @@ export default function TabLayout() {
                                 }}
                             >
                                 <Feather name="dollar-sign" size={30} color={COLORS.white} />
+                            </View>
+                        )
+                    }
+                }}
+            />
+            <Tabs.Screen
+                name="Resumen"
+                options={{
+                    title: "",
+                    tabBarIcon: ({ focused }) => {
+                        return (
+                            <View
+                                style={{
+                                    alignItems: "center",
+                                    paddingTop: 10,
+                                    width: SIZES.width / 5
+                                }}
+                            >
+                                <SimpleLineIcons
+                                    name="notebook"
+                                    size={24}
+                                    color={focused ? COLORS.primary : COLORS.gray3}
+                                />
+                                <Text
+                                    style={{
+                                        ...FONTS.body4,
+                                        color: focused ? COLORS.primary : COLORS.gray3
+                                    }}
+                                >
+                                    Resumen
+                                </Text>
                             </View>
                         )
                     }

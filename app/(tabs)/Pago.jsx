@@ -277,38 +277,9 @@ export default function Pago() {
 
                         // Intentar enviar directamente al servidor primero
                         try {
-                            // Verificar si el pago ya existe en el servidor
-                            const verificacion = await registroPagos.verificarPagoExistente(idPago)
-
-                            if (verificacion.success && verificacion.existe) {
-                                // El pago ya existe en el servidor
-                                hideWait()
-                                showInfo(
-                                    "Pago Ya Registrado",
-                                    "Este pago ya fue registrado anteriormente en el servidor",
-                                    [
-                                        {
-                                            text: "OK",
-                                            style: "default",
-                                            onPress: () => {
-                                                limpiarFormulario()
-                                                if (esDetalleCredito) {
-                                                    router.push("/(screens)/DetalleCredito")
-                                                } else {
-                                                    router.replace("/(tabs)/Cartera")
-                                                }
-                                            }
-                                        }
-                                    ]
-                                )
-                                return
-                            }
-
-                            // Si no existe, proceder con el registro
                             const resultadoServidor = await registroPagos.registrarPago(pagoData)
 
                             if (resultadoServidor.success) {
-                                // ✅ Pago enviado exitosamente al servidor
                                 hideWait()
                                 const mensaje = `${tipoSeleccionado?.descripcion} de ${montoFormateado} registrado exitosamente en el servidor`
 
@@ -441,14 +412,6 @@ export default function Pago() {
             return null
         }
     }
-
-    // BackHandler.addEventListener("hardwareBackPress", () => {
-    //     if (esDetalleCredito) {
-    //         router.push("/(screens)/DetalleCredito")
-    //     } else {
-    //         router.push("/(tabs)/Cartera")
-    //     }
-    // })
 
     return (
         <View
