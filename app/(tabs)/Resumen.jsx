@@ -7,10 +7,9 @@ import {
     ScrollView,
     Image,
     Platform,
-    Animated,
     FlatList
 } from "react-native"
-import { Feather } from "@expo/vector-icons"
+import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { COLORS, images } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import { useCustomAlert } from "../../hooks/useCustomAlert"
@@ -18,6 +17,7 @@ import { resumenDiario } from "../../services"
 import CustomAlert from "../../components/CustomAlert"
 import DateSelector from "../../components/DateSelector"
 import MapModal from "../../components/MapModal"
+import TarjetaResumenOperacion from "../../components/TarjetaResumenOperacion"
 import storage from "../../utils/storage"
 import numeral from "numeral"
 
@@ -44,11 +44,16 @@ export default function Resumen() {
     const [busqueda, setBusqueda] = useState("")
     const [ordenamiento, setOrdenamiento] = useState("fecha")
     const [mostrarTodos, setMostrarTodos] = useState(false)
-    const [refreshing, setRefreshing] = useState(false)
+
+    // Estados para controles expandibles
+    const [mostrarBusqueda, setMostrarBusqueda] = useState(false)
+    const [mostrarFiltros, setMostrarFiltros] = useState(false)
 
     // Estados para el modal del mapa
     const [mapModalVisible, setMapModalVisible] = useState(false)
     const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState(null)
+
+    const scrollViewRef = useRef(null)
 
     useEffect(() => {
         inicializarDatos()
@@ -111,6 +116,8 @@ export default function Resumen() {
                 setResumenData(resultado.data.resumen_diario)
                 setOperaciones(resultado.data.detalle_operaciones || [])
                 setMostrarTodos(false)
+                // Ocultar búsqueda después de búsqueda exitosa
+                setMostrarBusqueda(false)
             } else {
                 showError("Error", resultado.error || "No se pudo obtener el resumen")
                 setResumenData(null)
@@ -152,12 +159,6 @@ export default function Resumen() {
         setOperacionesFiltradas(filtradas)
     }
 
-    const onRefresh = async () => {
-        setRefreshing(true)
-        await buscarResumen()
-        setRefreshing(false)
-    }
-
     const mostrarUbicacion = (operacion) => {
         setUbicacionSeleccionada({
             latitud: operacion.latitud,
@@ -174,15 +175,13 @@ export default function Resumen() {
         }
     }
 
-    const operacionesParaMostrar = mostrarTodos
-        ? operacionesFiltradas
-        : operacionesFiltradas.slice(0, 10)
-
-    const scrollViewRef = useRef(null)
-
     const handleToggleExpansion = (operacion) => {
         setExpandedId(expandedId === operacion ? null : operacion)
     }
+
+    const operacionesParaMostrar = mostrarTodos
+        ? operacionesFiltradas
+        : operacionesFiltradas.slice(0, 10)
 
     return (
         <View
@@ -195,7 +194,6 @@ export default function Resumen() {
             <CustomAlert ref={alertRef} />
 
             {/* Header */}
-
             <View className="flex-row items-center p-4">
                 <Image
                     source={images.avatar}
@@ -207,15 +205,30 @@ export default function Resumen() {
             <View className="bg-white flex-1 rounded-t-3xl">
                 <View className="flex-row justify-between items-center border-b border-gray-200 px-3">
                     <Text className="text-lg font-semibold my-5">Mis pagos registrados</Text>
+                    <View className="flex-row items-center">
+                        <Pressable
+                            onPress={() => setMostrarBusqueda(!mostrarBusqueda)}
+                            className="mr-3 p-2"
+                        >
+                            <MaterialIcons name="search" size={24} color="black" />
+                        </Pressable>
+                    </View>
                 </View>
-                <ScrollView ref={scrollViewRef} className="flex-1">
-                    {/* Selectores de Fecha */}
-                    <View className="mx-4 mt-4 p-4 rounded-xl">
-                        <Text className="text-lg font-bold text-gray-800 mb-4">
-                            Rango de Fechas
-                        </Text>
 
-                        <View className="flex-row gap-2">
+                {/* Panel de búsqueda expandible */}
+                {mostrarBusqueda && (
+                    <View className="mx-4 mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <View className="flex-row justify-between items-center mb-4">
+                            <Text className="text-lg font-bold text-blue-800">Rango de Fechas</Text>
+                            <Pressable
+                                onPress={() => setMostrarBusqueda(false)}
+                                className="w-6 h-6 rounded-full bg-blue-200 justify-center items-center"
+                            >
+                                <Feather name="x" size={14} color="#1E40AF" />
+                            </Pressable>
+                        </View>
+
+                        <View className="flex-row gap-2 mb-4">
                             <View className="flex-1">
                                 <DateSelector
                                     label="Inicio"
@@ -250,50 +263,72 @@ export default function Resumen() {
                             onPress={buscarResumen}
                             className="bg-blue-600 rounded-xl p-4 flex-row justify-center items-center"
                         >
-                            <Feather name="search" size={20} color="white" />
+                            <MaterialIcons name="search" size={24} color="white" />
                             <Text className="text-white font-semibold text-base ml-2">
                                 Consultar
                             </Text>
                         </Pressable>
                     </View>
+                )}
 
-                    {/* Resumen Diario */}
-                    {resumenData && (
-                        <View className="bg-white mx-4 mt-4 p-6 rounded-xl shadow-sm">
-                            <Text className="text-lg font-bold text-gray-800 mb-4">
-                                Resumen del Período
-                            </Text>
+                {/* Resumen del Período - Fijo en la parte superior */}
+                {resumenData && (
+                    <View className="bg-white mx-4 mt-4 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <Text className="text-lg font-bold text-gray-800 mb-4">
+                            Resumen del Período
+                        </Text>
 
-                            <View className="space-y-3">
-                                <View className="flex-row justify-between items-center">
-                                    <Text className="text-gray-600">Rango de fechas:</Text>
-                                    <Text className="font-semibold text-gray-800">
-                                        {resumenData.rango_fechas}
-                                    </Text>
-                                </View>
+                        <View className="space-y-3">
+                            <View className="flex-row justify-between items-center">
+                                <Text className="text-gray-600">Rango de fechas:</Text>
+                                <Text className="font-semibold text-gray-800">
+                                    {resumenData.rango_fechas}
+                                </Text>
+                            </View>
 
-                                <View className="flex-row justify-between items-center">
-                                    <Text className="text-gray-600">Total operaciones:</Text>
-                                    <Text className="font-semibold text-blue-600 text-lg">
-                                        {resumenData.total_operaciones}
-                                    </Text>
-                                </View>
+                            <View className="flex-row justify-between items-center">
+                                <Text className="text-gray-600">Total operaciones:</Text>
+                                <Text className="font-semibold text-blue-600 text-lg">
+                                    {resumenData.total_operaciones}
+                                </Text>
+                            </View>
 
-                                <View className="flex-row justify-between items-center border-t border-gray-200 pt-3">
-                                    <Text className="text-gray-600 font-medium">Monto total:</Text>
-                                    <Text className="font-bold text-green-600 text-xl">
-                                        ${numeral(resumenData.monto_total).format("0,0.00")}
-                                    </Text>
-                                </View>
+                            <View className="flex-row justify-between items-center border-t border-gray-200 pt-3">
+                                <Text className="text-gray-600 font-medium">Monto total:</Text>
+                                <Text className="font-bold text-green-600 text-xl">
+                                    ${numeral(resumenData.monto_total).format("0,0.00")}
+                                </Text>
                             </View>
                         </View>
-                    )}
+                        {/* Título de operaciones con icono de filtro */}
+                        {operaciones.length > 0 && (
+                            <View className="flex-row justify-between items-center mt-6">
+                                <Text className="text-lg font-bold text-gray-800">
+                                    Detalle de Operaciones
+                                </Text>
+                                <Pressable onPress={() => setMostrarFiltros(!mostrarFiltros)}>
+                                    <MaterialIcons name="filter-list" size={20} color="black" />
+                                </Pressable>
+                            </View>
+                        )}
 
-                    {/* Búsqueda y Filtros */}
-                    {operaciones.length > 0 && (
-                        <View className="bg-white mx-4 mt-4 p-4 rounded-xl shadow-sm">
-                            <View className="flex-row items-center space-x-3 mb-4">
-                                <View className="flex-1 flex-row items-center bg-gray-50 rounded-xl px-4 py-3">
+                        {/* Panel de filtros expandible */}
+                        {mostrarFiltros && operaciones.length > 0 && (
+                            <View className="mx-4 mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                                <View className="flex-row justify-between items-center mb-4">
+                                    <Text className="text-lg font-bold text-green-800">
+                                        Filtros y Búsqueda
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => setMostrarFiltros(false)}
+                                        className="w-6 h-6 rounded-full bg-green-200 justify-center items-center"
+                                    >
+                                        <Feather name="x" size={14} color="#16A34A" />
+                                    </Pressable>
+                                </View>
+
+                                {/* Campo de búsqueda */}
+                                <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-4 border border-green-200">
                                     <Feather name="search" size={20} color="#9CA3AF" />
                                     <TextInput
                                         className="flex-1 ml-3 text-gray-800"
@@ -302,54 +337,63 @@ export default function Resumen() {
                                         onChangeText={setBusqueda}
                                         placeholderTextColor="#9CA3AF"
                                     />
+                                    {busqueda.length > 0 && (
+                                        <Pressable onPress={() => setBusqueda("")}>
+                                            <Feather name="x" size={16} color="#9CA3AF" />
+                                        </Pressable>
+                                    )}
+                                </View>
+
+                                {/* Opciones de ordenamiento */}
+                                <View>
+                                    <Text className="text-green-700 font-medium mb-2">
+                                        Ordenar por:
+                                    </Text>
+                                    <View className="flex-row flex-wrap gap-2">
+                                        {[
+                                            { key: "fecha", label: "Fecha" },
+                                            { key: "nombre", label: "Nombre" },
+                                            { key: "credito", label: "Crédito" }
+                                        ].map((tipo) => (
+                                            <Pressable
+                                                key={tipo.key}
+                                                onPress={() => setOrdenamiento(tipo.key)}
+                                                className={`px-3 py-2 rounded-lg ${
+                                                    ordenamiento === tipo.key
+                                                        ? "bg-green-200 border border-green-400"
+                                                        : "bg-white border border-green-200"
+                                                }`}
+                                            >
+                                                <Text
+                                                    className={`text-sm font-medium ${
+                                                        ordenamiento === tipo.key
+                                                            ? "text-green-800"
+                                                            : "text-green-600"
+                                                    }`}
+                                                >
+                                                    {tipo.label}
+                                                </Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
                                 </View>
                             </View>
+                        )}
+                    </View>
+                )}
 
-                            <View className="flex-row items-center space-x-2">
-                                <Text className="text-gray-600 font-medium">Ordenar por:</Text>
-                                {["fecha", "nombre", "credito"].map((tipo) => (
-                                    <Pressable
-                                        key={tipo}
-                                        onPress={() => setOrdenamiento(tipo)}
-                                        className={`px-3 py-2 rounded-lg ${
-                                            ordenamiento === tipo
-                                                ? "bg-blue-100 border border-blue-300"
-                                                : "bg-gray-100"
-                                        }`}
-                                    >
-                                        <Text
-                                            className={`text-sm font-medium ${
-                                                ordenamiento === tipo
-                                                    ? "text-blue-700"
-                                                    : "text-gray-600"
-                                            }`}
-                                        >
-                                            {tipo === "fecha"
-                                                ? "Fecha"
-                                                : tipo === "nombre"
-                                                ? "Nombre"
-                                                : "Crédito"}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-
+                {/* Área de scroll para operaciones */}
+                <ScrollView ref={scrollViewRef} className="flex-1">
                     {/* Lista de Operaciones */}
                     {operacionesParaMostrar.length > 0 && (
                         <View className="mx-4 mt-4 mb-6">
-                            <Text className="text-lg font-bold text-gray-800 mb-4 px-2">
-                                Detalle de Operaciones ({operacionesFiltradas.length})
-                            </Text>
-
                             <FlatList
                                 data={operacionesParaMostrar}
                                 keyExtractor={(operacion) =>
                                     operacion.cdgns && operacion.ciclo && operacion.secuencia
                                 }
                                 renderItem={({ item }) => (
-                                    <OperacionCard
+                                    <TarjetaResumenOperacion
                                         operacion={item}
                                         expandida={expandedId === item}
                                         onToggle={() => handleToggleExpansion(item)}
@@ -401,6 +445,20 @@ export default function Resumen() {
                             </Text>
                         </View>
                     )}
+
+                    {/* Mensaje inicial */}
+                    {!resumenData && (
+                        <View className="mx-4 mt-8 p-8 bg-white rounded-xl shadow-sm items-center">
+                            <Feather name="calendar" size={48} color="#9CA3AF" />
+                            <Text className="text-lg font-medium text-gray-800 mt-4 mb-2">
+                                Selecciona un Rango de Fechas
+                            </Text>
+                            <Text className="text-gray-600 text-center">
+                                Toca el icono de búsqueda para seleccionar las fechas y consultar
+                                tus pagos
+                            </Text>
+                        </View>
+                    )}
                 </ScrollView>
             </View>
 
@@ -414,123 +472,5 @@ export default function Resumen() {
                 credito={ubicacionSeleccionada?.credito}
             />
         </View>
-    )
-}
-
-// Componente para las cards de operaciones
-function OperacionCard({ operacion, expandida, onToggle, onVerUbicacion }) {
-    const [animatedHeight] = useState(new Animated.Value(expandida ? 1 : 0))
-    const [contentHeight, setContentHeight] = useState(0)
-
-    useEffect(() => {
-        const toValue = expandida ? 1 : 0
-
-        Animated.timing(animatedHeight, {
-            toValue,
-            duration: 300,
-            useNativeDriver: false
-        }).start()
-    }, [expandida])
-
-    const expandedHeight = animatedHeight.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, Math.max(contentHeight, 100)]
-    })
-
-    const opacity = animatedHeight.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1]
-    })
-
-    const handleContentLayout = (event) => {
-        const { height } = event.nativeEvent.layout
-        setContentHeight(height)
-    }
-
-    return (
-        <Pressable
-            onPress={onToggle}
-            className="bg-white rounded-2xl shadow-md p-4 mb-4 border border-gray-200"
-        >
-            <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                    <Text className="font-semibold text-base">
-                        {operacion.nombre || "No disponible"}
-                    </Text>
-                    <Text className="text-gray-600 text-sm mb-1">
-                        Crédito: {operacion.cdgns} • Ciclo: {operacion.ciclo}
-                    </Text>
-                    <Text className="text-gray-600 text-sm mb-1">Fecha: {operacion.fecha}</Text>
-                    <View className="flex-row items-center">
-                        <View className="px-2 py-1 rounded-full mr-2 bg-blue-100">
-                            <Text className="text-xs font-medium text-blue-700">
-                                {operacion.tipo}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-                <View className="items-end">
-                    <Text className="text-sm text-gray-500">Monto</Text>
-                    <Text className="font-semibold text-base">
-                        {isNaN(parseFloat(operacion.monto))
-                            ? operacion.monto
-                            : numeral(operacion.monto).format("$0,0.00")}
-                    </Text>
-                    <Animated.View
-                        style={{
-                            transform: [
-                                {
-                                    rotate: animatedHeight.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ["0deg", "180deg"]
-                                    })
-                                }
-                            ]
-                        }}
-                    >
-                        <Feather name="chevron-down" size={20} color="#6B7280" />
-                    </Animated.View>
-                </View>
-            </View>
-
-            <Animated.View
-                style={{
-                    height: expandedHeight,
-                    opacity: opacity,
-                    overflow: "hidden"
-                }}
-            >
-                <View
-                    className="mt-3 pt-3 border-t border-gray-200 border-dashed"
-                    onLayout={handleContentLayout}
-                >
-                    <View className="flex-row justify-between items-start">
-                        <View className="flex-1">
-                            <Text className="text-sm text-gray-700 mb-1">
-                                Fecha de registro: {operacion.fregistro}
-                            </Text>
-                            <Text className="text-sm text-gray-700 mb-1">
-                                Secuencia: {operacion.secuencia}
-                            </Text>
-
-                            {operacion.comentarios_ejecutivo && (
-                                <Text className="text-sm text-gray-700 mb-1">
-                                    Comentarios: {operacion.comentarios_ejecutivo}
-                                </Text>
-                            )}
-                        </View>
-                        <Pressable
-                            onPress={() => onVerUbicacion(operacion)}
-                            className="bg-purple-600 rounded-xl p-3 flex-row justify-center items-center"
-                        >
-                            <Feather name="map-pin" size={18} color="white" />
-                            <Text className="text-white font-semibold text-base ml-2">
-                                Ubicación
-                            </Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </Animated.View>
-        </Pressable>
     )
 }

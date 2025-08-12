@@ -52,6 +52,7 @@ export default function DateSelector({
                     onChange={onChange}
                     minimumDate={minDate}
                     maximumDate={maxDate}
+                    className="bg-primary"
                 />
             )}
         </View>
