@@ -17,8 +17,8 @@ export const registroPagos = {
 
     // Registrar un pago individual en el servidor
     async registrarPago(pagoData) {
-        const token = await storage.getToken()
         try {
+            const token = await storage.getToken()
             const fecha = pagoData.fechaCaptura.split("T")[0].split("/").reverse().join("-")
 
             let fotoBase64 = null

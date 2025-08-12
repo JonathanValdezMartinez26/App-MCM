@@ -16,6 +16,7 @@
         "@expo/metro-runtime": "~5.0.4",
         "@expo/vector-icons": "^14.1.0",
         "@react-native-async-storage/async-storage": "2.1.2",
+        "@react-native-community/datetimepicker": "^8.4.4",
         "axios": "^1.11.0",
         "expo": "53.0.20",
         "expo-build-properties": "~0.14.8",
@@ -27,6 +28,7 @@
         "expo-router": "5.1.4",
         "expo-splash-screen": "0.30.10",
         "expo-status-bar": "2.2.3",
+        "expo-updates": "~0.28.17",
         "nativewind": "^4.1.23",
         "numeral": "^2.0.6",
         "react": "19.0.0",
@@ -37,8 +39,7 @@
         "react-native-safe-area-context": "5.4.0",
         "react-native-screens": "4.11.1",
         "react-native-swipe-row": "^1.0.3",
-        "react-native-web": "0.20.0",
-        "expo-updates": "~0.28.17"
+        "react-native-web": "0.20.0"
     },
     "devDependencies": {
         "@babel/core": "^7.25.2",
