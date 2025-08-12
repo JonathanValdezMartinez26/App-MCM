@@ -10,6 +10,7 @@ import {
     FlatList
 } from "react-native"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
+import { router } from "expo-router"
 import { COLORS, images } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import { useCustomAlert } from "../../hooks/useCustomAlert"
@@ -43,6 +44,7 @@ export default function Resumen() {
     // Estados para la interfaz
     const [busqueda, setBusqueda] = useState("")
     const [ordenamiento, setOrdenamiento] = useState("fecha")
+    const [ordenAscendente, setOrdenAscendente] = useState(false)
     const [mostrarTodos, setMostrarTodos] = useState(false)
 
     // Estados para controles expandibles
@@ -71,7 +73,7 @@ export default function Resumen() {
 
     useEffect(() => {
         filtrarYOrdenarOperaciones()
-    }, [operaciones, busqueda, ordenamiento])
+    }, [operaciones, busqueda, ordenamiento, ordenAscendente])
 
     const inicializarDatos = async () => {
         try {
@@ -145,15 +147,21 @@ export default function Resumen() {
 
         // Ordenar
         filtradas.sort((a, b) => {
+            let resultado = 0
             switch (ordenamiento) {
                 case "nombre":
-                    return a.nombre.localeCompare(b.nombre)
+                    resultado = a.nombre.localeCompare(b.nombre)
+                    break
                 case "credito":
-                    return a.cdgns.localeCompare(b.cdgns)
+                    resultado = a.cdgns.localeCompare(b.cdgns)
+                    break
                 case "fecha":
                 default:
-                    return new Date(b.fregistro) - new Date(a.fregistro)
+                    resultado = new Date(b.fregistro) - new Date(a.fregistro)
+                    break
             }
+            // Invertir el resultado si es orden ascendente
+            return ordenAscendente ? -resultado : resultado
         })
 
         setOperacionesFiltradas(filtradas)
@@ -187,34 +195,23 @@ export default function Resumen() {
         <View
             className="flex-1 bg-primary"
             style={{
-                paddingTop: insets.top,
-                paddingBottom: Platform.OS === "ios" ? 90 : 60
+                paddingTop: insets.top
             }}
         >
-            <CustomAlert ref={alertRef} />
-
             {/* Header */}
             <View className="flex-row items-center p-4">
-                <Image
-                    source={images.avatar}
-                    className="w-10 h-10 rounded-full border border-white"
-                />
-                <Text className="flex-1 ml-2.5 text-white">HOLA, {usuario?.nombre}</Text>
+                <Pressable onPress={() => router.back()} className="mr-4">
+                    <Feather name="arrow-left" size={24} color="white" />
+                </Pressable>
+                <Text className="flex-1 text-white text-lg font-semibold">
+                    Mis pagos registrados
+                </Text>{" "}
+                <Pressable onPress={() => setMostrarBusqueda(!mostrarBusqueda)} className="p-2">
+                    <MaterialIcons name="search" size={24} color="white" />
+                </Pressable>
             </View>
 
             <View className="bg-white flex-1 rounded-t-3xl">
-                <View className="flex-row justify-between items-center border-b border-gray-200 px-3">
-                    <Text className="text-lg font-semibold my-5">Mis pagos registrados</Text>
-                    <View className="flex-row items-center">
-                        <Pressable
-                            onPress={() => setMostrarBusqueda(!mostrarBusqueda)}
-                            className="mr-3 p-2"
-                        >
-                            <MaterialIcons name="search" size={24} color="black" />
-                        </Pressable>
-                    </View>
-                </View>
-
                 {/* Panel de búsqueda expandible */}
                 {mostrarBusqueda && (
                     <View className="mx-4 mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
@@ -300,85 +297,103 @@ export default function Resumen() {
                                 </Text>
                             </View>
                         </View>
-                        {/* Título de operaciones con icono de filtro */}
-                        {operaciones.length > 0 && (
-                            <View className="flex-row justify-between items-center mt-6">
-                                <Text className="text-lg font-bold text-gray-800">
-                                    Detalle de Operaciones
-                                </Text>
-                                <Pressable onPress={() => setMostrarFiltros(!mostrarFiltros)}>
-                                    <MaterialIcons name="filter-list" size={20} color="black" />
+                    </View>
+                )}
+
+                {/* Título de operaciones con icono de filtro */}
+                {operaciones.length > 0 && (
+                    <View className="flex-row justify-between items-center mx-4 mt-6 mb-4">
+                        <Text className="text-lg font-bold text-gray-800">
+                            Detalle de Operaciones ({operacionesFiltradas.length})
+                        </Text>
+                        <Pressable onPress={() => setMostrarFiltros(!mostrarFiltros)}>
+                            <MaterialIcons name="filter-list" size={20} color="black" />
+                        </Pressable>
+                    </View>
+                )}
+
+                {/* Panel de filtros expandible */}
+                {mostrarFiltros && operaciones.length > 0 && (
+                    <View className="mx-4 mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                        <View className="flex-row justify-between items-center mb-4">
+                            <Text className="text-lg font-bold text-green-800">
+                                Filtros y Búsqueda
+                            </Text>
+                            <Pressable
+                                onPress={() => setMostrarFiltros(false)}
+                                className="w-6 h-6 rounded-full bg-green-200 justify-center items-center"
+                            >
+                                <Feather name="x" size={14} color="#16A34A" />
+                            </Pressable>
+                        </View>
+
+                        {/* Campo de búsqueda */}
+                        <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-4 border border-green-200">
+                            <Feather name="search" size={20} color="#9CA3AF" />
+                            <TextInput
+                                className="flex-1 ml-3 text-gray-800"
+                                placeholder="Buscar por nombre o crédito..."
+                                value={busqueda}
+                                onChangeText={setBusqueda}
+                                placeholderTextColor="#9CA3AF"
+                            />
+                            {busqueda.length > 0 && (
+                                <Pressable onPress={() => setBusqueda("")}>
+                                    <Feather name="x" size={16} color="#9CA3AF" />
                                 </Pressable>
-                            </View>
-                        )}
+                            )}
+                        </View>
 
-                        {/* Panel de filtros expandible */}
-                        {mostrarFiltros && operaciones.length > 0 && (
-                            <View className="mx-4 mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                                <View className="flex-row justify-between items-center mb-4">
-                                    <Text className="text-lg font-bold text-green-800">
-                                        Filtros y Búsqueda
-                                    </Text>
+                        {/* Opciones de ordenamiento */}
+                        <View className="mb-4">
+                            <Text className="text-green-700 font-medium mb-2">Ordenar por:</Text>
+                            <View className="flex-row flex-wrap gap-2 mb-3">
+                                {[
+                                    { key: "fecha", label: "Fecha" },
+                                    { key: "nombre", label: "Nombre" },
+                                    { key: "credito", label: "Crédito" }
+                                ].map((tipo) => (
                                     <Pressable
-                                        onPress={() => setMostrarFiltros(false)}
-                                        className="w-6 h-6 rounded-full bg-green-200 justify-center items-center"
+                                        key={tipo.key}
+                                        onPress={() => setOrdenamiento(tipo.key)}
+                                        className={`px-3 py-2 rounded-lg ${
+                                            ordenamiento === tipo.key
+                                                ? "bg-green-200 border border-green-400"
+                                                : "bg-white border border-green-200"
+                                        }`}
                                     >
-                                        <Feather name="x" size={14} color="#16A34A" />
+                                        <Text
+                                            className={`text-sm font-medium ${
+                                                ordenamiento === tipo.key
+                                                    ? "text-green-800"
+                                                    : "text-green-600"
+                                            }`}
+                                        >
+                                            {tipo.label}
+                                        </Text>
                                     </Pressable>
-                                </View>
+                                ))}
+                            </View>
 
-                                {/* Campo de búsqueda */}
-                                <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-4 border border-green-200">
-                                    <Feather name="search" size={20} color="#9CA3AF" />
-                                    <TextInput
-                                        className="flex-1 ml-3 text-gray-800"
-                                        placeholder="Buscar por nombre o crédito..."
-                                        value={busqueda}
-                                        onChangeText={setBusqueda}
-                                        placeholderTextColor="#9CA3AF"
-                                    />
-                                    {busqueda.length > 0 && (
-                                        <Pressable onPress={() => setBusqueda("")}>
-                                            <Feather name="x" size={16} color="#9CA3AF" />
-                                        </Pressable>
+                            {/* Checkbox para orden ascendente */}
+                            <Pressable
+                                onPress={() => setOrdenAscendente(!ordenAscendente)}
+                                className="flex-row items-center bg-white p-3 rounded-lg border border-green-200"
+                            >
+                                <View
+                                    className={`w-5 h-5 rounded border-2 justify-center items-center mr-3 ${
+                                        ordenAscendente
+                                            ? "bg-green-600 border-green-600"
+                                            : "border-green-400"
+                                    }`}
+                                >
+                                    {ordenAscendente && (
+                                        <Feather name="check" size={12} color="white" />
                                     )}
                                 </View>
-
-                                {/* Opciones de ordenamiento */}
-                                <View>
-                                    <Text className="text-green-700 font-medium mb-2">
-                                        Ordenar por:
-                                    </Text>
-                                    <View className="flex-row flex-wrap gap-2">
-                                        {[
-                                            { key: "fecha", label: "Fecha" },
-                                            { key: "nombre", label: "Nombre" },
-                                            { key: "credito", label: "Crédito" }
-                                        ].map((tipo) => (
-                                            <Pressable
-                                                key={tipo.key}
-                                                onPress={() => setOrdenamiento(tipo.key)}
-                                                className={`px-3 py-2 rounded-lg ${
-                                                    ordenamiento === tipo.key
-                                                        ? "bg-green-200 border border-green-400"
-                                                        : "bg-white border border-green-200"
-                                                }`}
-                                            >
-                                                <Text
-                                                    className={`text-sm font-medium ${
-                                                        ordenamiento === tipo.key
-                                                            ? "text-green-800"
-                                                            : "text-green-600"
-                                                    }`}
-                                                >
-                                                    {tipo.label}
-                                                </Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                </View>
-                            </View>
-                        )}
+                                <Text className="text-green-700 font-medium">Orden ascendente</Text>
+                            </Pressable>
+                        </View>
                     </View>
                 )}
 
@@ -471,6 +486,8 @@ export default function Resumen() {
                 nombreCliente={ubicacionSeleccionada?.nombreCliente}
                 credito={ubicacionSeleccionada?.credito}
             />
+
+            <CustomAlert ref={alertRef} />
         </View>
     )
 }

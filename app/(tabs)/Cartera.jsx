@@ -32,9 +32,7 @@ export default function Cartera() {
                 const nombreMatch = cliente.nombre
                     ?.toLowerCase()
                     .includes(terminoBusqueda.toLowerCase())
-                const creditoMatch = cliente.creditos?.some((credito) =>
-                    credito.no_credito?.includes(terminoBusqueda)
-                )
+                const creditoMatch = cliente.cdgns?.includes(terminoBusqueda)
                 return nombreMatch || creditoMatch
             })
             setClientesFiltrados(filtrados)

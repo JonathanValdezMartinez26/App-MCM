@@ -318,10 +318,9 @@ export default function SincronizarPagos() {
 
     return (
         <View
-            className="flex-1"
+            className="flex-1 bg-primary"
             style={{
-                paddingTop: insets.top,
-                backgroundColor: COLORS.primary
+                paddingTop: insets.top
             }}
         >
             <View className="flex-row items-center p-4">

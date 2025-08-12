@@ -40,7 +40,7 @@ export default function TabLayout() {
                                 style={{
                                     alignItems: "center",
                                     paddingTop: 10,
-                                    width: SIZES.width / 5
+                                    width: SIZES.width / 3
                                 }}
                             >
                                 <AntDesign
@@ -71,45 +71,14 @@ export default function TabLayout() {
                                 style={{
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    width: SIZES.width / 7,
-                                    height: SIZES.width / 7,
+                                    width: SIZES.width / 6,
+                                    height: SIZES.width / 6,
                                     borderRadius: 999,
                                     backgroundColor: COLORS.primary,
                                     marginBottom: 32
                                 }}
                             >
                                 <Feather name="dollar-sign" size={30} color={COLORS.white} />
-                            </View>
-                        )
-                    }
-                }}
-            />
-            <Tabs.Screen
-                name="Resumen"
-                options={{
-                    title: "",
-                    tabBarIcon: ({ focused }) => {
-                        return (
-                            <View
-                                style={{
-                                    alignItems: "center",
-                                    paddingTop: 10,
-                                    width: SIZES.width / 5
-                                }}
-                            >
-                                <SimpleLineIcons
-                                    name="notebook"
-                                    size={24}
-                                    color={focused ? COLORS.primary : COLORS.gray3}
-                                />
-                                <Text
-                                    style={{
-                                        ...FONTS.body4,
-                                        color: focused ? COLORS.primary : COLORS.gray3
-                                    }}
-                                >
-                                    Resumen
-                                </Text>
                             </View>
                         )
                     }
@@ -125,7 +94,7 @@ export default function TabLayout() {
                                 style={{
                                     alignItems: "center",
                                     paddingTop: 10,
-                                    width: SIZES.width / 5
+                                    width: SIZES.width / 3
                                 }}
                             >
                                 <Feather

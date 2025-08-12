@@ -76,6 +76,15 @@ export default function Perfil() {
             </View>
 
             <View className="flex-1 justify-center items-center px-8 py-12">
+                {/* Botón Resumen Diario */}
+                <Pressable
+                    className="bg-blue-50 border border-blue-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
+                    onPress={() => router.push("/Resumen")}
+                >
+                    <MaterialIcons name="assessment" size={24} color="#2563eb" />
+                    <Text className="text-blue-600 text-base font-medium ml-3">Resumen Diario</Text>
+                </Pressable>
+
                 {/* Botón Entregar Pagos */}
                 <Pressable
                     className="bg-green-50 border border-green-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
