@@ -31,6 +31,7 @@ export default function RootLayout() {
                                     <Stack.Screen name="(tabs)" />
                                     <Stack.Screen name="(screens)/DetalleCredito" />
                                     <Stack.Screen name="(screens)/SincronizarPagos" />
+                                    <Stack.Screen name="(screens)/Resumen" />
                                     <Stack.Screen name="+not-found" />
                                 </Stack>
 

@@ -7,12 +7,10 @@ import {
     ScrollView,
     Animated,
     Image,
-    Platform,
-    BackHandler
+    Platform
 } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
-import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 import { useCustomAlert } from "../../hooks/useCustomAlert"

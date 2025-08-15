@@ -1,17 +1,7 @@
 import { useContext, useState, useEffect, useRef } from "react"
-import {
-    View,
-    Text,
-    TextInput,
-    Pressable,
-    ScrollView,
-    Image,
-    Platform,
-    FlatList
-} from "react-native"
+import { View, Text, TextInput, Pressable, ScrollView, FlatList } from "react-native"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { router } from "expo-router"
-import { COLORS, images } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import { useCustomAlert } from "../../hooks/useCustomAlert"
 import { resumenDiario } from "../../services"

@@ -72,14 +72,32 @@ export default function Perfil() {
                 <Text className="text-lg font-bold text-gray-900">
                     {usuario?.nombre || "Ejecutivo"}
                 </Text>
-                <Text className="text-sm text-gray-700">{usuario?.id_usuario || "Usuario"}</Text>
+                <View className="flex-row gap-1">
+                    <Text className="text-sm font-semibold text-gray-700">Usuario:</Text>
+                    <Text className="text-sm text-gray-700">
+                        {usuario?.id_usuario || "Usuario"}
+                    </Text>
+                </View>
+
+                <View className="flex-row gap-1">
+                    <Text className="text-sm font-semibold text-gray-700">Región:</Text>
+                    <Text className="text-sm text-gray-700">
+                        {usuario?.region_base || "Región"}
+                    </Text>
+                </View>
+                <View className="flex-row gap-1">
+                    <Text className="text-sm font-semibold text-gray-700">Sucursal:</Text>
+                    <Text className="text-sm text-gray-700">
+                        {usuario?.sucursal_base || "Sucursal"}
+                    </Text>
+                </View>
             </View>
 
             <View className="flex-1 justify-center items-center px-8 py-12">
                 {/* Botón Resumen Diario */}
                 <Pressable
                     className="bg-blue-50 border border-blue-200 rounded-2xl px-8 py-4 flex-row items-center mb-6 w-full"
-                    onPress={() => router.push("/Resumen")}
+                    onPress={() => router.push("/(screens)/Resumen")}
                 >
                     <MaterialIcons name="assessment" size={24} color="#2563eb" />
                     <Text className="text-blue-600 text-base font-medium ml-3">Resumen Diario</Text>

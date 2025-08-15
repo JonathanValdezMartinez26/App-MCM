@@ -1,6 +1,6 @@
 import { Tabs, router } from "expo-router"
 import { View, Text, Platform } from "react-native"
-import { Feather, AntDesign, SimpleLineIcons } from "@expo/vector-icons"
+import { Feather, AntDesign } from "@expo/vector-icons"
 import { useEffect } from "react"
 import { COLORS, FONTS, SIZES } from "../../constants"
 import { useSession } from "../../context/SessionContext"
