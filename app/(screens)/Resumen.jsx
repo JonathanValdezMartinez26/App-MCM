@@ -381,7 +381,9 @@ export default function Resumen() {
                                         <Feather name="check" size={12} color="white" />
                                     )}
                                 </View>
-                                <Text className="text-green-700 font-medium">Orden ascendente</Text>
+                                <Text className="text-green-700 font-medium">
+                                    Orden descendente
+                                </Text>
                             </Pressable>
                         </View>
                     </View>

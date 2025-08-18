@@ -17,7 +17,7 @@ import { useCustomAlert } from "../../hooks/useCustomAlert"
 import { useCartera } from "../../context/CarteraContext"
 import { usePago } from "../../context/PagoContext"
 import { pagosPendientes, catalogos, registroPagos } from "../../services"
-import CustomAlert from "../../components/CustomAlert"
+import CustomAlert, { showAlert } from "../../components/CustomAlert"
 import * as ImagePicker from "expo-image-picker"
 import * as Location from "expo-location"
 import { generarIdPago } from "../../utils/pagoId"
@@ -27,7 +27,8 @@ export default function Pago() {
     const params = useLocalSearchParams()
     const { datosPago, tieneContextoPago, limpiarDatosPago } = usePago()
     const insets = useContext(SafeAreaInsetsContext)
-    const { alertRef, showError, showSuccess, showInfo, showWait, hideWait } = useCustomAlert()
+    const { alertRef, showError, showSuccess, showInfo, showWarning, showWait, hideWait } =
+        useCustomAlert()
     const { validarCredito, obtenerInfoCredito } = useCartera()
 
     // Estado para controlar si los parámetros son válidos (vienen con timestamp reciente)
@@ -208,6 +209,19 @@ export default function Pago() {
             return false
         }
 
+        const montoMaximo = numeral(datosPago?.pagoSemanalDetalle).multiply(2)
+        if (montoMaximo.value() > 0 && montoMaximo.value() < monto) {
+            showError(
+                "Error",
+                `El monto no puede ser mayor al doble del pago semanal (${montoMaximo.format(
+                    "$0,0.00"
+                )})`,
+                [{ text: "OK", style: "default" }]
+            )
+            animarError()
+            return false
+        }
+
         return true
     }
 
@@ -221,10 +235,21 @@ export default function Pago() {
         ]).start()
 
         const tipoSeleccionado = tiposPago.find((t) => t.codigo === tipoPago)
+        const diferencia = numeral(montoFormateado).subtract(
+            numeral(datosPago?.pagoSemanalDetalle).value()
+        )
+
+        const alerta = diferencia.value() > 1 ? showWarning : showInfo
+        const titulo =
+            diferencia.value() > 1
+                ? `El monto a registrar es mayor al pago semanal por ${diferencia.format(
+                      "$0,0.00"
+                  )}\n`
+                : "Confirmar Registro"
         const confirmacionMensaje = `¿Confirma que desea registrar un ${tipoSeleccionado?.descripcion.toLowerCase()} de ${montoFormateado} para el crédito ${credito}?`
 
         // Mostrar confirmación antes de procesar
-        showInfo("Confirmar Registro", confirmacionMensaje, [
+        alerta(titulo, confirmacionMensaje, [
             {
                 text: "Cancelar",
                 style: "cancel",
