@@ -23,7 +23,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
 
     const expandedHeight = animatedHeight.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, Math.max(contentHeight, 170)]
+        outputRange: [0, Math.max(contentHeight, 190)]
     })
 
     const opacity = animatedHeight.interpolate({
@@ -160,6 +160,14 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                             {cliente.mora_total > 0 && (
                                 <Text className="text-sm text-red-600 mb-1 font-medium">
                                     Mora total: {numeral(cliente.mora_total).format("$0,0.00")}
+                                </Text>
+                            )}
+                            {cliente.dias_mora > 0 && (
+                                <Text className="text-sm text-red-600 mb-1 font-medium">
+                                    Se pone al corriente con:{" "}
+                                    {numeral(cliente.con_cuanto_se_pone_al_corriente).format(
+                                        "$0,0.00"
+                                    )}
                                 </Text>
                             )}
                         </View>

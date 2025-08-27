@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react"
 import { View, Text, Pressable, ScrollView, Alert, Modal, Image, Animated } from "react-native"
 import { PanGestureHandler, State } from "react-native-gesture-handler"
-import { useLocalSearchParams, router, useFocusEffect } from "expo-router"
+import { router, useFocusEffect } from "expo-router"
 import { Feather, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
 import { creditos, pagosPendientes } from "../../services"
 import { COLORS } from "../../constants"
@@ -22,12 +22,16 @@ export default function DetalleCredito() {
     const [detalle, setDetalle] = useState(null)
     const [loading, setLoading] = useState(true)
     const [maxMovimientos, setMaxMovimientos] = useState(10)
+    const [filtroTipoMov, setFiltroTipoMov] = useState(null)
     const [pagosPendientesCredito, setPagosPendientesCredito] = useState([])
     const [modalComprobanteVisible, setModalComprobanteVisible] = useState(false)
     const [comprobanteSeleccionado, setComprobanteSeleccionado] = useState(null)
     const maxMov = 10
     const insets = useContext(SafeAreaInsetsContext)
     const { alertRef, showInfo, showError } = useCustomAlert()
+
+    // Se retira temporalmente: "inversion"
+    const filtroXtipo = ["pago", "ahorro", "otros"]
 
     const volverAClientes = () => {
         limpiarDatosDetalle()
@@ -292,6 +296,17 @@ export default function DetalleCredito() {
         )
     }
 
+    const filtrarTipos = (movTipo) => {
+        const f = filtroTipoMov.toLowerCase()
+        const mt = movTipo.toLowerCase()
+        if (f === "otros") {
+            const ft = filtroXtipo.filter((t) => t !== "otros")
+            return !filtroXtipo.some((t) => mt.includes(t))
+        }
+
+        return mt.includes(f)
+    }
+
     return (
         <View
             className="flex-1 bg-primary"
@@ -511,16 +526,53 @@ export default function DetalleCredito() {
                                         </Text>
                                     </View>
                                 </View>
-                                <View className="space-y-3">
-                                    {pagosPendientesCredito.map((pago, index) => (
-                                        <TransaccionPendiente
-                                            key={`pendiente-${index}`}
-                                            pago={pago}
-                                            index={index}
-                                        />
+                                {/* Filtros de tipo de movimiento */}
+                                <View className="flex-row mb-4 space-x-2 justify-evenly">
+                                    {filtroXtipo.map((tipo) => (
+                                        <Pressable
+                                            key={tipo}
+                                            onPress={() =>
+                                                setFiltroTipoMov(
+                                                    filtroTipoMov === tipo ? null : tipo
+                                                )
+                                            }
+                                            className={`px-4 py-2 rounded-full border ${
+                                                filtroTipoMov === tipo
+                                                    ? "bg-blue-500 border-blue-500"
+                                                    : "bg-gray-100 border-gray-300"
+                                            }`}
+                                        >
+                                            <Text
+                                                className={`text-xs font-semibold ${
+                                                    filtroTipoMov === tipo
+                                                        ? "text-white"
+                                                        : "text-blue-700"
+                                                }`}
+                                            >
+                                                {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                                            </Text>
+                                        </Pressable>
                                     ))}
+                                </View>
+                                <View className="space-y-3">
+                                    {pagosPendientesCredito
+                                        .filter((pago) => {
+                                            if (!filtroTipoMov) return true
+                                            return filtrarTipos(pago.tipoEtiqueta)
+                                        })
+                                        .map((pago, index) => (
+                                            <TransaccionPendiente
+                                                key={`pendiente-${index}`}
+                                                pago={pago}
+                                                index={index}
+                                            />
+                                        ))}
                                     {detalle.movimientos
                                         ?.slice(0, maxMovimientos)
+                                        .filter((mov) => {
+                                            if (!filtroTipoMov) return true
+                                            return filtrarTipos(mov.tipo)
+                                        })
                                         .map((mov, index) => (
                                             <View
                                                 key={`procesado-${index}`}
@@ -540,7 +592,13 @@ export default function DetalleCredito() {
                                                         <View className="flex-row mb-1">
                                                             <View className="justify-center items-start">
                                                                 <Text className="text-sm font-medium text-gray-800">
-                                                                    Pago {mov.fecha_valor}
+                                                                    {mov.tipo
+                                                                        ? mov.tipo
+                                                                              .charAt(0)
+                                                                              .toUpperCase() +
+                                                                          mov.tipo.slice(1)
+                                                                        : "Pago"}{" "}
+                                                                    {mov.fecha_valor}
                                                                 </Text>
                                                                 <Text className="text-xs text-gray-500">
                                                                     {mov.fecha_captura ||
