@@ -82,6 +82,12 @@ export default function Pago() {
                 if (!esDetalleCredito && resultado.cliente.ciclo) {
                     setCiclo(resultado.cliente.ciclo.toString())
                 }
+
+                // Auto-llenar el monto con pago_semanal si no viene de DetalleCredito
+                if (!esDetalleCredito && resultado.cliente.pago_semanal) {
+                    setMonto(resultado.cliente.pago_semanal.toString())
+                    setTipoPago("P") // Establecer como PAGO por defecto
+                }
             } else {
                 setInfoCredito(null)
                 // Mostrar error si el crédito no es válido
@@ -209,17 +215,29 @@ export default function Pago() {
             return false
         }
 
-        const montoMaximo = numeral(datosPago?.pagoSemanalDetalle).multiply(2)
-        if (montoMaximo.value() > 0 && montoMaximo.value() < monto) {
-            showError(
-                "Error",
-                `El monto no puede ser mayor al doble del pago semanal (${montoMaximo.format(
-                    "$0,0.00"
-                )})`,
-                [{ text: "OK", style: "default" }]
-            )
-            animarError()
-            return false
+        // Validación de monto máximo basada en el pago semanal
+        let pagoSemanalReferencia
+        if (esDetalleCredito && datosPago?.pagoSemanalDetalle) {
+            // Si viene del contexto de DetalleCredito, usar pagoSemanalDetalle
+            pagoSemanalReferencia = datosPago.pagoSemanalDetalle
+        } else if (infoCredito?.pago_semanal) {
+            // Si es búsqueda directa, usar el pago_semanal del endpoint
+            pagoSemanalReferencia = infoCredito.pago_semanal
+        }
+
+        if (pagoSemanalReferencia) {
+            const montoMaximo = numeral(pagoSemanalReferencia).multiply(2)
+            if (montoMaximo.value() > 0 && montoMaximo.value() < monto) {
+                showError(
+                    "Error",
+                    `El monto no puede ser mayor al doble del pago semanal (${montoMaximo.format(
+                        "$0,0.00"
+                    )})`,
+                    [{ text: "OK", style: "default" }]
+                )
+                animarError()
+                return false
+            }
         }
 
         return true
@@ -235,9 +253,18 @@ export default function Pago() {
         ]).start()
 
         const tipoSeleccionado = tiposPago.find((t) => t.codigo === tipoPago)
-        const diferencia = numeral(montoFormateado).subtract(
-            numeral(datosPago?.pagoSemanalDetalle).value()
-        )
+
+        // Determinar pago semanal de referencia para comparación
+        let pagoSemanalReferencia
+        if (esDetalleCredito && datosPago?.pagoSemanalDetalle) {
+            pagoSemanalReferencia = datosPago.pagoSemanalDetalle
+        } else if (infoCredito?.pago_semanal) {
+            pagoSemanalReferencia = infoCredito.pago_semanal
+        }
+
+        const diferencia = pagoSemanalReferencia
+            ? numeral(montoFormateado).subtract(numeral(pagoSemanalReferencia).value())
+            : numeral(0)
 
         const alerta = diferencia.value() > 1 ? showWarning : showInfo
         const titulo =
@@ -538,6 +565,12 @@ export default function Pago() {
                                     <Text className="text-sm font-medium text-green-800">
                                         ✓ {infoCredito.nombre}
                                     </Text>
+                                    {infoCredito.pago_semanal && (
+                                        <Text className="text-xs text-green-700 mt-1">
+                                            Pago semanal: $
+                                            {numeral(infoCredito.pago_semanal).format("0,0.00")}
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         </View>
