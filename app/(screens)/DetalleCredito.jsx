@@ -30,8 +30,8 @@ export default function DetalleCredito() {
     const insets = useContext(SafeAreaInsetsContext)
     const { alertRef, showInfo, showError } = useCustomAlert()
 
-    // Se retira temporalmente: "inversion"
-    const filtroXtipo = ["pago", "ahorro", "otros"]
+    // Filtros por tipo de movimiento
+    const filtroXtipo = ["pago", "ahorro", "inversion", "otros"]
 
     const volverAClientes = () => {
         limpiarDatosDetalle()
@@ -74,6 +74,19 @@ export default function DetalleCredito() {
                 }
             }
         ])
+    }
+
+    const registrarVisita = () => {
+        // Navegar a la pantalla de registro de visita con los datos del crédito
+        router.push({
+            pathname: "/(screens)/RegistroVisita",
+            params: {
+                credito: datosDetalle?.noCredito,
+                ciclo: datosDetalle?.ciclo,
+                nombre: datosDetalle?.nombre,
+                timestamp: Date.now() // Para validar la frescura de los datos
+            }
+        })
     }
 
     useEffect(() => {
@@ -364,20 +377,28 @@ export default function DetalleCredito() {
                             </View>
                         </View>
                         {resumen && resumen.progreso < 1 && (
-                            <Pressable
-                                onPress={() => {
-                                    establecerDatosPago({
-                                        noCreditoDetalle: datosDetalle?.noCredito,
-                                        cicloDetalle: datosDetalle?.ciclo,
-                                        pagoSemanalDetalle: resumen?.pagosSemana,
-                                        nombre: datosDetalle?.nombre
-                                    })
-                                    router.push("/(tabs)/Pago")
-                                }}
-                                className="ml-4 p-3 bg-green-500 rounded-full shadow-lg"
-                            >
-                                <MaterialCommunityIcons name="plus" size={24} color="white" />
-                            </Pressable>
+                            <View className="ml-4">
+                                <Pressable
+                                    onPress={() => {
+                                        establecerDatosPago({
+                                            noCreditoDetalle: datosDetalle?.noCredito,
+                                            cicloDetalle: datosDetalle?.ciclo,
+                                            pagoSemanalDetalle: resumen?.pagosSemana,
+                                            nombre: datosDetalle?.nombre
+                                        })
+                                        router.push("/(tabs)/Pago")
+                                    }}
+                                    className="p-3 bg-green-500 rounded-full shadow-lg mb-3"
+                                >
+                                    <MaterialCommunityIcons name="plus" size={24} color="white" />
+                                </Pressable>
+                                <Pressable
+                                    onPress={registrarVisita}
+                                    className="p-3 bg-red-500 rounded-full shadow-lg"
+                                >
+                                    <MaterialIcons name="location-on" size={24} color="white" />
+                                </Pressable>
+                            </View>
                         )}
                     </View>
 

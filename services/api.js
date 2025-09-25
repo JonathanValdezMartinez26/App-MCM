@@ -12,7 +12,9 @@ export const API_CONFIG = {
         DETALLE_CREDITO: "/DetalleMovimientosCliente",
         AGREGAR_PAGO_CLIENTE: "/AgregarPagoCliente",
         CATALOGO_TIPOS_PAGO: "/CatalogoTiposPago",
-        RESUMEN_DIARIO: "/ResumenDiario"
+        RESUMEN_DIARIO: "/ResumenDiario",
+        REGISTRO_VISITA: "/RegistrarVisita",
+        CATALOGO_MOTIVOS_VISITA: "/CatalogoMotivosVisita"
     },
 
     HTTP_STATUS: {
