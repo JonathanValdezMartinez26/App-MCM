@@ -23,9 +23,79 @@ export default function Cartera() {
     const { clientes, loading, obtenerCartera } = useCartera()
     const insets = useContext(SafeAreaInsetsContext)
     const [expandedId, setExpandedId] = useState(null)
+    const [gruposExpandidos, setGruposExpandidos] = useState({})
     const [mostrarBusqueda, setMostrarBusqueda] = useState(false)
     const [terminoBusqueda, setTerminoBusqueda] = useState("")
     const [clientesFiltrados, setClientesFiltrados] = useState([])
+    const [gruposPorDia, setGruposPorDia] = useState([])
+
+    useEffect(() => {
+        const agruparPorDia = () => {
+            const clientesConMora = clientesFiltrados.filter(
+                (cliente) => cliente.mora_total && parseFloat(cliente.mora_total) > 0
+            )
+            const clientesSinMora = clientesFiltrados.filter(
+                (cliente) => !cliente.mora_total || parseFloat(cliente.mora_total) === 0
+            )
+
+            const grupos = {}
+            clientesSinMora.forEach((cliente) => {
+                const dia = cliente.dia_pago || "Sin día asignado"
+                if (!grupos[dia]) grupos[dia] = []
+                grupos[dia].push(cliente)
+            })
+
+            const gruposArray = Object.entries(grupos)
+                .map(([dia, clientes]) => ({
+                    dia,
+                    clientes: clientes.sort((a, b) => {
+                        const nombreA = (a.nombre || "").toLowerCase()
+                        const nombreB = (b.nombre || "").toLowerCase()
+                        return nombreA.localeCompare(nombreB)
+                    }),
+                    cantidad: clientes.length
+                }))
+                .sort((a, b) => {
+                    const normalizarDia = (dia) =>
+                        dia
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+
+                    const diasOrden = {
+                        lunes: 1,
+                        martes: 2,
+                        miercoles: 3,
+                        jueves: 4,
+                        viernes: 5,
+                        sabado: 6,
+                        domingo: 7
+                    }
+
+                    const diaNormA = normalizarDia(a.dia)
+                    const diaNormB = normalizarDia(b.dia)
+
+                    return (diasOrden[diaNormA] || 999) - (diasOrden[diaNormB] || 999)
+                })
+
+            if (clientesConMora.length > 0) {
+                gruposArray.push({
+                    dia: "Morosos sin vencimiento",
+                    clientes: clientesConMora.sort((a, b) => {
+                        const nombreA = (a.nombre || "").toLowerCase()
+                        const nombreB = (b.nombre || "").toLowerCase()
+                        return nombreA.localeCompare(nombreB)
+                    }),
+                    cantidad: clientesConMora.length,
+                    esMorosos: true
+                })
+            }
+
+            setGruposPorDia(gruposArray)
+        }
+
+        agruparPorDia()
+    }, [clientesFiltrados])
 
     useEffect(() => {
         if (terminoBusqueda.length >= 3) {
@@ -52,6 +122,77 @@ export default function Cartera() {
 
     const handleToggleExpansion = (clienteId) => {
         setExpandedId(expandedId === clienteId ? null : clienteId)
+    }
+
+    const toggleGrupo = (dia) => {
+        setGruposExpandidos((prev) => ({
+            ...prev,
+            [dia]: !prev[dia]
+        }))
+    }
+
+    const TarjetaGrupoDia = ({ grupo }) => {
+        const isExpanded = gruposExpandidos[grupo.dia]
+        const { dia, clientes, cantidad, esMorosos } = grupo
+
+        return (
+            <View className="mb-4">
+                {/* Header de grupo */}
+                <Pressable
+                    onPress={() => toggleGrupo(dia)}
+                    className={`rounded-2xl p-4 shadow-sm ${
+                        esMorosos
+                            ? "bg-red-50 border-2 border-red-200"
+                            : "bg-blue-50 border-2 border-blue-200"
+                    }`}
+                >
+                    <View className="flex-row items-center justify-between">
+                        <View className="flex-1">
+                            <Text
+                                className={`text-lg font-bold ${
+                                    esMorosos ? "text-red-800" : "text-blue-800"
+                                }`}
+                            >
+                                {dia}
+                            </Text>
+                            <Text
+                                className={`text-sm mt-1 ${
+                                    esMorosos ? "text-red-600" : "text-blue-600"
+                                }`}
+                            >
+                                {cantidad} crédito{cantidad !== 1 ? "s" : ""}
+                            </Text>
+                        </View>
+                        <View className="flex-row items-center">
+                            {esMorosos && (
+                                <View className="bg-red-500 px-2 py-1 rounded-full mr-3">
+                                    <Text className="text-white text-xs font-bold">MORA</Text>
+                                </View>
+                            )}
+                            <MaterialIcons
+                                name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                                size={28}
+                                color={esMorosos ? "#991b1b" : "#1e40af"}
+                            />
+                        </View>
+                    </View>
+                </Pressable>
+
+                {/* Contenido expandido - Lista de créditos */}
+                {isExpanded && (
+                    <View className="mt-2">
+                        {clientes.map((cliente) => (
+                            <TarjetaCarteraCredito
+                                key={cliente.cdgns}
+                                cliente={cliente}
+                                isExpanded={expandedId === cliente.cdgns}
+                                onToggle={() => handleToggleExpansion(cliente.cdgns)}
+                            />
+                        ))}
+                    </View>
+                )}
+            </View>
+        )
     }
 
     return (
@@ -129,7 +270,7 @@ export default function Cartera() {
                 )}
 
                 <View className="flex-1 px-5">
-                    {clientesFiltrados.length === 0 && !loading ? (
+                    {gruposPorDia.length === 0 && !loading ? (
                         <View className="flex-1 justify-center items-center">
                             <Text className="text-gray-500">
                                 {terminoBusqueda.length >= 3
@@ -139,15 +280,9 @@ export default function Cartera() {
                         </View>
                     ) : (
                         <FlatList
-                            data={clientesFiltrados}
-                            keyExtractor={(cliente) => cliente.cdgns}
-                            renderItem={({ item }) => (
-                                <TarjetaCarteraCredito
-                                    cliente={item}
-                                    isExpanded={expandedId === item.cdgns}
-                                    onToggle={() => handleToggleExpansion(item.cdgns)}
-                                />
-                            )}
+                            data={gruposPorDia}
+                            keyExtractor={(grupo) => grupo.dia}
+                            renderItem={({ item }) => <TarjetaGrupoDia grupo={item} />}
                             showsVerticalScrollIndicator={false}
                             className="pt-2"
                         />
