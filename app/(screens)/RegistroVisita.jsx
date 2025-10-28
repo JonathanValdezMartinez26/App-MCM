@@ -2,13 +2,13 @@ import { useContext, useState, useEffect } from "react"
 import { View, Text, TextInput, Pressable, ScrollView, Image, Platform } from "react-native"
 import { Feather, MaterialIcons } from "@expo/vector-icons"
 import { router, useLocalSearchParams } from "expo-router"
+import * as ImagePicker from "expo-image-picker"
+import * as Location from "expo-location"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
+
 import { useCustomAlert } from "../../hooks/useCustomAlert"
 import { obtenerMotivosVisita, registrarVisita } from "../../services"
 import CustomAlert from "../../components/CustomAlert"
-import * as ImagePicker from "expo-image-picker"
-import * as Location from "expo-location"
-import numeral from "numeral"
 
 export default function RegistroVisita() {
     const params = useLocalSearchParams()
@@ -87,6 +87,11 @@ export default function RegistroVisita() {
             showError("Error", "Debe seleccionar un motivo de visita", [
                 { text: "OK", style: "default" }
             ])
+            return false
+        }
+
+        if (!comentarios.trim()) {
+            showError("Error", "Los comentarios son requeridos", [{ text: "OK", style: "default" }])
             return false
         }
 
@@ -412,7 +417,7 @@ export default function RegistroVisita() {
                                 onChangeText={setComentarios}
                                 className={`border-2 rounded-2xl p-4 h-36 ${
                                     focusedField === "comentarios"
-                                        ? "border-red-400 bg-red-50"
+                                        ? "border-green-400 bg-green-50"
                                         : "border-gray-300 bg-white"
                                 }`}
                                 multiline

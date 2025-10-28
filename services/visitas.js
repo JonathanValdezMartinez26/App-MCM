@@ -62,6 +62,7 @@ export const obtenerMotivosVisita = async () => {
 export const registrarVisita = async (datosVisita) => {
     try {
         const token = await storage.getToken()
+
         const response = await apiClient.post(API_CONFIG.ENDPOINTS.REGISTRO_VISITA, datosVisita, {
             headers: {
                 Authorization: `Bearer ${token}`

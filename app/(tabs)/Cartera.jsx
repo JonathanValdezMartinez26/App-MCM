@@ -1,4 +1,6 @@
 import { useState, useContext, useEffect } from "react"
+import { SafeAreaInsetsContext } from "react-native-safe-area-context"
+import { MaterialIcons } from "@expo/vector-icons"
 import {
     View,
     Text,
@@ -10,11 +12,10 @@ import {
     Platform,
     TextInput
 } from "react-native"
+
 import { COLORS, images } from "../../constants"
 import { useSession } from "../../context/SessionContext"
 import { useCartera } from "../../context/CarteraContext"
-import { MaterialIcons } from "@expo/vector-icons"
-import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import TarjetaCarteraCredito from "../../components/TarjetaCarteraCredito"
 
 export default function Cartera() {

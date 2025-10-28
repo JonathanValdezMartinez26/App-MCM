@@ -44,4 +44,87 @@ export const apiClient = axios.create({
     ...API_CONFIG.AXIOS_CONFIG
 })
 
-export default apiClient
+// Implementación alternativa usando fetch
+// export const apiClient = {
+//     async request({ url, method = "GET", data = null, headers = {}, params = {} }) {
+//         // Construir la URL con parámetros si existen
+//         let fullUrl = API_CONFIG.BASE_URL + url
+//         if (params && Object.keys(params).length > 0) {
+//             const query = new URLSearchParams(params).toString()
+//             fullUrl += `?${query}`
+//         }
+
+//         // Configuración de headers
+//         const configHeaders = {
+//             ...API_CONFIG.AXIOS_CONFIG.headers,
+//             ...headers
+//         }
+
+//         // Configuración de la petición
+//         const fetchConfig = {
+//             method,
+//             headers: configHeaders
+//         }
+//         if (data) {
+//             fetchConfig.body = JSON.stringify(data)
+//         }
+
+//         // Timeout manual
+//         const controller = new AbortController()
+//         const timeout = setTimeout(() => controller.abort(), API_CONFIG.AXIOS_CONFIG.timeout)
+//         fetchConfig.signal = controller.signal
+
+//         try {
+//             console.log("API Request:", { method, fullUrl })
+
+//             const response = await fetch(fullUrl, fetchConfig)
+//             clearTimeout(timeout)
+//             const contentType = response.headers.get("content-type")
+//             let responseData
+//             if (contentType && contentType.includes("application/json")) {
+//                 responseData = await response.json()
+//             } else {
+//                 responseData = await response.text()
+//             }
+//             return {
+//                 status: response.status,
+//                 data: responseData
+//             }
+//         } catch (error) {
+//             clearTimeout(timeout)
+//             if (error.name === "AbortError") {
+//                 return {
+//                     status: null,
+//                     error: "La petición ha sido abortada por timeout"
+//                 }
+//             }
+//             if (error.name === "TypeError") {
+//                 return {
+//                     status: null,
+//                     error: "Error de red o CORS"
+//                 }
+//             }
+//             if (error.response) {
+//                 console.log("API Response Error:", error.response)
+
+//                 const errorData = await error.response.json()
+//                 return {
+//                     status: error.response.status,
+//                     error: errorData
+//                 }
+//             }
+//         }
+//     },
+//     get(url, config = {}) {
+//         return this.request({ url, method: "GET", ...config })
+//     },
+//     post(url, data, config = {}) {
+//         return this.request({ url, method: "POST", data, ...config })
+//     },
+//     put(url, data, config = {}) {
+//         return this.request({ url, method: "PUT", data, ...config })
+//     },
+//     delete(url, config = {}) {
+//         return this.request({ url, method: "DELETE", ...config })
+//     }
+// }

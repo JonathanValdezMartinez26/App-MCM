@@ -407,7 +407,7 @@ export default function DetalleCredito() {
                             <View className="items-center flex-1">
                                 <Text className="text-xs text-gray-600 mb-1">Saldo Total</Text>
                                 <Text className="text-lg font-bold text-gray-800">
-                                    {numeral(resumen.saldoTotal).format("$0,0.00")}
+                                    {numeral(resumen?.saldoTotal).format("$0,0.00")}
                                 </Text>
                             </View>
                             {datosDetalle?.moraTotal && parseFloat(datosDetalle?.moraTotal) > 0 && (
