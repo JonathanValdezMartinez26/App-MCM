@@ -9,7 +9,6 @@ import { useDetalle } from "../context/DetalleContext"
 export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle }) {
     const [animatedHeight] = useState(new Animated.Value(isExpanded ? 1 : 0))
     const [contentHeight, setContentHeight] = useState(0)
-    const [translateX] = useState(new Animated.Value(0))
     const { establecerDatosDetalle } = useDetalle()
 
     useEffect(() => {
@@ -74,8 +73,6 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                             className={`px-2 py-1 rounded-full mr-2 ${
                                 cliente.tipo_cartera === "VIGENTE"
                                     ? "bg-green-100"
-                                    : cliente.tipo_cartera === "VENCIDA"
-                                    ? "bg-red-100"
                                     : "bg-yellow-100"
                             }`}
                         >
@@ -83,8 +80,6 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
                                 className={`text-xs font-medium ${
                                     cliente.tipo_cartera === "VIGENTE"
                                         ? "text-green-700"
-                                        : cliente.tipo_cartera === "VENCIDA"
-                                        ? "text-red-700"
                                         : "text-yellow-700"
                                 }`}
                             >

@@ -305,7 +305,10 @@ export default function Pago() {
                         const usuarioId = usuario?.id_usuario || "UNKNOWN"
 
                         // Generar ID único para el pago
-                        const fechaCaptura = new Date().toISOString()
+                        const hoy = new Date()
+                        const timezoneOffset = hoy.getTimezoneOffset() * 60000
+                        const fecha = new Date(hoy.getTime() - timezoneOffset)
+                        const fechaCaptura = fecha.toISOString()
                         const idPago = await generarIdPago(credito, fechaCaptura, usuarioId, monto)
 
                         // Preparar los datos del pago
