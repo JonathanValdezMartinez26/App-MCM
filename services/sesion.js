@@ -18,6 +18,7 @@ export default {
                 usuario,
                 password
             })
+            console.log(response.status)
 
             // Si el login es exitoso, inicializar catálogos
             if (response.status === API_CONFIG.HTTP_STATUS.OK) {
