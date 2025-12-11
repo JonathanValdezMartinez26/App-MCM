@@ -19,8 +19,20 @@ export const registroPagos = {
     async registrarPago(pagoData) {
         try {
             const token = await storage.getToken()
-            const fecha = pagoData.fechaCaptura.split("T")[0].split("/").reverse().join("-")
+            const fechaCapturaDate = new Date(pagoData.fechaCaptura)
+            const diaSemana = fechaCapturaDate.getDay()
 
+            // Si es domingo, mover a viernes
+            if (diaSemana === 0) fechaCapturaDate.setDate(fechaCapturaDate.getDate() - 2)
+            // Si es sábado, mover a viernes
+            if (diaSemana === 6) fechaCapturaDate.setDate(fechaCapturaDate.getDate() - 1)
+
+            const fecha = fechaCapturaDate
+                .toISOString()
+                .split("T")[0]
+                .split("/")
+                .reverse()
+                .join("-")
             let fotoBase64 = null
 
             if (pagoData.fotoComprobante) {
@@ -43,11 +55,6 @@ export const registroPagos = {
                 latitud: pagoData.latitud || null,
                 longitud: pagoData.longitud || null
             }
-
-            // console.log("Enviando pago al servidor:", {
-            //     ...data,
-            //     foto: fotoBase64 ? `[base64 image ${fotoBase64.length} chars]` : null
-            // })
 
             const response = await apiClient.post(API_CONFIG.ENDPOINTS.AGREGAR_PAGO_CLIENTE, data, {
                 headers: {
