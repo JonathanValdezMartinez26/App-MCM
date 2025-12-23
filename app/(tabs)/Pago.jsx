@@ -29,7 +29,7 @@ export default function Pago() {
     const insets = useContext(SafeAreaInsetsContext)
     const { alertRef, showError, showSuccess, showInfo, showWarning, showWait, hideWait } =
         useCustomAlert()
-    const { validarCredito, obtenerInfoCredito } = useCartera()
+    const { validarCredito } = useCartera()
 
     // Estado para controlar si los parámetros son válidos (vienen con timestamp reciente)
     const [parametrosValidos, setParametrosValidos] = useState(false)
@@ -325,6 +325,7 @@ export default function Pago() {
                             latitud: ubicacion.latitud,
                             longitud: ubicacion.longitud,
                             fechaCaptura: fechaCaptura,
+                            fechaDiaPago: infoCredito?.fecha_dia_pago || params.fechaDiaPago || "",
                             usuarioId: usuarioId
                         }
 

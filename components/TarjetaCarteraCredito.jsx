@@ -42,6 +42,7 @@ export default function TarjetaCarteraCredito({ cliente, isExpanded, onToggle })
             ciclo: cliente.ciclo,
             nombre: cliente.nombre || "",
             diaPago: cliente.dia_pago || "",
+            fechaDiaPago: cliente.fecha_dia_pago || "",
             saldoTotal: cliente.saldo_total || "0",
             cantEntregada: cliente.cant_entre || "0",
             tipoCartera: cliente.tipo_cartera || "",

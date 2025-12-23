@@ -383,8 +383,9 @@ export default function DetalleCredito() {
                                         establecerDatosPago({
                                             noCreditoDetalle: datosDetalle?.noCredito,
                                             cicloDetalle: datosDetalle?.ciclo,
+                                            nombre: datosDetalle?.nombre,
                                             pagoSemanalDetalle: resumen?.pagosSemana,
-                                            nombre: datosDetalle?.nombre
+                                            fechaDiaPago: datosDetalle?.fechaDiaPago || ""
                                         })
                                         router.push("/(tabs)/Pago")
                                     }}
@@ -422,6 +423,9 @@ export default function DetalleCredito() {
                                 <Text className="text-xs text-gray-600 mb-1">Día de pago</Text>
                                 <Text className="text-sm font-medium text-gray-700">
                                     {datosDetalle?.diaPago}
+                                </Text>
+                                <Text className="text-xs font-medium text-gray-600">
+                                    {datosDetalle?.fechaDiaPago}
                                 </Text>
                             </View>
                         </View>
@@ -687,7 +691,8 @@ export default function DetalleCredito() {
                                             noCreditoDetalle: datosDetalle?.noCredito,
                                             cicloDetalle: datosDetalle?.ciclo,
                                             nombre: datosDetalle.nombre,
-                                            pagoSemanalDetalle: resumen?.pagosSemana || 0
+                                            pagoSemanalDetalle: resumen?.pagosSemana || 0,
+                                            fechaDiaPago: datosDetalle?.fechaDiaPago || ""
                                         })
                                         router.push("/(tabs)/Pago")
                                     }}

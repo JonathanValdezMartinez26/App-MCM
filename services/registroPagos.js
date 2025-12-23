@@ -43,6 +43,10 @@ export const registroPagos = {
                 }
             }
 
+            const fpd = pagoData?.fechaDiaPago
+                ? pagoData.fechaDiaPago.split("/").reverse().join("-")
+                : ""
+
             const data = {
                 id_local: pagoData.id,
                 cdgns: pagoData.credito,
@@ -52,6 +56,7 @@ export const registroPagos = {
                 tipomov: pagoData.tipoPago,
                 foto: fotoBase64,
                 fecha_valor: fecha,
+                fecha_dia_pago: fpd,
                 latitud: pagoData.latitud || null,
                 longitud: pagoData.longitud || null
             }
