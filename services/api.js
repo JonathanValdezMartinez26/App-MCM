@@ -3,7 +3,6 @@ import axios from "axios"
 export const API_CONFIG = {
     BASE_URL: "http://18.117.29.228:5000",
     // BASE_URL: "http://192.168.1.2:5000",
-    // BASE_URL: "http://192.168.1.5:5000",
 
     // Endpoints de la API
     ENDPOINTS: {

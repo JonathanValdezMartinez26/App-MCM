@@ -4,7 +4,6 @@ import { PanGestureHandler, State } from "react-native-gesture-handler"
 import { router, useFocusEffect } from "expo-router"
 import { Feather, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
 import { creditos, pagosPendientes } from "../../services"
-import { COLORS } from "../../constants"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 import numeral from "numeral"
 import { useCallback } from "react"
@@ -99,7 +98,7 @@ export default function DetalleCredito() {
                 )
                 if (response.success) {
                     setDetalle(response.data)
-                    setMaxMovimientos(Math.min(response.data.movimientos.length, maxMov))
+                    setMaxMovimientos(Math.min(response.data?.movimientos?.length, maxMov))
                 } else {
                     console.error("Error al obtener detalle del crédito:", response.error)
                 }
@@ -133,11 +132,11 @@ export default function DetalleCredito() {
     const resumenDetalle = () => {
         if (!detalle) return null
 
-        const creditoInfo = detalle.detalle_credito || {}
-        const movimientos = detalle.movimientos || []
-        const totalPagado = detalle.detalle_credito.total_pd
+        const creditoInfo = detalle?.detalle_credito || {}
+        const movimientos = detalle?.movimientos || []
+        const totalPagado = detalle?.detalle_credito.total_pd
         const totalPendiente = pagosPendientesCredito.reduce((sum, p) => sum + p.monto, 0)
-        const pagoPromedio = movimientos.length > 0 ? totalPagado / movimientos.length : 0
+        const pagoPromedio = movimientos?.length > 0 ? totalPagado / movimientos?.length : 0
         const saldoTotal = creditoInfo?.saldo_total
         const progreso = creditoInfo?.progreso_porcentaje / 100
         const progreso_color = getColorProgreso(progreso)
@@ -150,7 +149,7 @@ export default function DetalleCredito() {
             progreso,
             progreso_color,
             pagosSemana: numeral(creditoInfo.pago_semanal).value(),
-            totalMovimientos: movimientos.length
+            totalMovimientos: movimientos?.length
         }
     }
 
@@ -536,7 +535,7 @@ export default function DetalleCredito() {
                         </View>
                     )}
                     <View className="p-6 border-t border-gray-200">
-                        {(detalle?.movimientos && detalle.movimientos.length > 0) ||
+                        {(detalle?.movimientos && detalle?.movimientos?.length > 0) ||
                         pagosPendientesCredito.length > 0 ? (
                             <>
                                 <View className="flex-row justify-between items-center mb-4">
@@ -545,7 +544,7 @@ export default function DetalleCredito() {
                                     </Text>
                                     <View className="bg-blue-100 px-3 py-1 rounded-full">
                                         <Text className="text-xs font-medium text-blue-700">
-                                            {(detalle.movimientos?.length || 0) +
+                                            {(detalle?.movimientos?.length || 0) +
                                                 pagosPendientesCredito.length}{" "}
                                             total
                                         </Text>
@@ -592,7 +591,7 @@ export default function DetalleCredito() {
                                                 index={index}
                                             />
                                         ))}
-                                    {detalle.movimientos
+                                    {detalle?.movimientos
                                         ?.slice(0, maxMovimientos)
                                         .filter((mov) => {
                                             if (!filtroTipoMov) return true
@@ -653,14 +652,14 @@ export default function DetalleCredito() {
                                             </View>
                                         ))}
                                 </View>
-                                {detalle.movimientos &&
-                                    detalle.movimientos.length > maxMovimientos && (
+                                {detalle?.movimientos &&
+                                    detalle?.movimientos?.length > maxMovimientos && (
                                         <Pressable
                                             onPress={() =>
                                                 setMaxMovimientos(
                                                     Math.min(
                                                         maxMovimientos + 10,
-                                                        detalle.movimientos.length
+                                                        detalle?.movimientos?.length
                                                     )
                                                 )
                                             }
@@ -668,7 +667,7 @@ export default function DetalleCredito() {
                                         >
                                             <Text className="text-center text-blue-600 font-medium">
                                                 Ver más movimientos (
-                                                {detalle.movimientos.length - maxMovimientos}{" "}
+                                                {detalle?.movimientos?.length - maxMovimientos}{" "}
                                                 restantes)
                                             </Text>
                                         </Pressable>

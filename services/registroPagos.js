@@ -1,4 +1,5 @@
 import { apiClient, API_CONFIG } from "./api"
+import { dateShortBack, dateTimeBack } from "../utils/date"
 import storage from "../utils/storage"
 import * as FileSystem from "expo-file-system"
 
@@ -19,7 +20,10 @@ export const registroPagos = {
     async registrarPago(pagoData) {
         try {
             const token = await storage.getToken()
-            const fechaCapturaDate = new Date(pagoData.fechaCaptura)
+            const fechaCapturaDate =
+                pagoData.fechaCaptura instanceof Date
+                    ? pagoData.fechaCaptura
+                    : new Date(pagoData.fechaCaptura)
             const diaSemana = fechaCapturaDate.getDay()
 
             // Si es domingo, mover a viernes
@@ -27,12 +31,6 @@ export const registroPagos = {
             // Si es sábado, mover a viernes
             if (diaSemana === 6) fechaCapturaDate.setDate(fechaCapturaDate.getDate() - 1)
 
-            const fecha = fechaCapturaDate
-                .toISOString()
-                .split("T")[0]
-                .split("/")
-                .reverse()
-                .join("-")
             let fotoBase64 = null
 
             if (pagoData.fotoComprobante) {
@@ -55,11 +53,18 @@ export const registroPagos = {
                 comentarios_ejecutivo: pagoData.comentarios || "",
                 tipomov: pagoData.tipoPago,
                 foto: fotoBase64,
-                fecha_valor: fecha,
+                fecha_valor: dateShortBack(fechaCapturaDate),
+                fecha_app: dateTimeBack(fechaCapturaDate, true),
                 fecha_dia_pago: fpd,
                 latitud: pagoData.latitud || null,
                 longitud: pagoData.longitud || null
             }
+
+            // delete data.foto
+            // console.log(data)
+            // return {
+            //     success: true
+            // }
 
             const response = await apiClient.post(API_CONFIG.ENDPOINTS.AGREGAR_PAGO_CLIENTE, data, {
                 headers: {
@@ -84,7 +89,7 @@ export const registroPagos = {
                 }
             }
         } catch (error) {
-            console.error("Error al registrar pago:", error)
+            console.error("Error al registrar pago:", error.message)
             return {
                 success: false,
                 error: error.response?.data?.message || error.message || "Error de conexión",

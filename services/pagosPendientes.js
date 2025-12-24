@@ -56,20 +56,9 @@ export const pagosPendientes = {
             }
 
             const nuevoPago = {
+                ...pagoData,
                 id: pagoData.id || `${Date.now()}_${pagoData.credito}`, // Usar ID hasheado o fallback
-                credito: pagoData.credito,
-                ciclo: pagoData.ciclo,
-                monto: parseFloat(pagoData.monto),
-                comentarios: pagoData.comentarios || "",
-                tipoPago: pagoData.tipoPago,
-                tipoEtiqueta: pagoData.tipoEtiqueta || "Desconocido",
-                fechaCaptura: pagoData.fechaCaptura || new Date().toISOString(),
-                nombreCliente: pagoData.nombreCliente || "",
-                estado: "pendiente",
-                fotoComprobante: pagoData.fotoComprobante || null,
-                latitud: pagoData.latitud || null,
-                longitud: pagoData.longitud || null,
-                usuarioId: pagoData.usuarioId || null
+                estado: "pendiente"
             }
 
             const pagosActualizados = [...pagosExistentes, nuevoPago]
