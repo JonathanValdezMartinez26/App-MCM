@@ -24,6 +24,7 @@ export const registroPagos = {
                 pagoData.fechaCaptura instanceof Date
                     ? pagoData.fechaCaptura
                     : new Date(pagoData.fechaCaptura)
+            const fechaApp = fechaCapturaDate
             const diaSemana = fechaCapturaDate.getDay()
 
             // Si es domingo, mover a viernes
@@ -54,17 +55,11 @@ export const registroPagos = {
                 tipomov: pagoData.tipoPago,
                 foto: fotoBase64,
                 fecha_valor: dateShortBack(fechaCapturaDate),
-                fecha_app: dateTimeBack(fechaCapturaDate, true),
+                fecha_app: dateTimeBack(fechaApp, true),
                 fecha_dia_pago: fpd,
                 latitud: pagoData.latitud || null,
                 longitud: pagoData.longitud || null
             }
-
-            // delete data.foto
-            // console.log(data)
-            // return {
-            //     success: true
-            // }
 
             const response = await apiClient.post(API_CONFIG.ENDPOINTS.AGREGAR_PAGO_CLIENTE, data, {
                 headers: {
